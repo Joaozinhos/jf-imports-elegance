@@ -1,6 +1,7 @@
+import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import type { Product } from "@/pages/Catalog";
+import type { Product } from "@/data/products";
 
 interface CatalogProductCardProps {
   product: Product;
@@ -73,9 +74,11 @@ const CatalogProductCard = ({ product, index }: CatalogProductCardProps) => {
           <p className="text-foreground font-sans font-medium">
             {formatPrice(product.price)}
           </p>
-          <Button variant="premium-outline" size="sm">
-            Comprar
-          </Button>
+          <Link to={`/produto/${product.id}`}>
+            <Button variant="premium-outline" size="sm">
+              Ver Mais
+            </Button>
+          </Link>
         </div>
       </div>
     </motion.article>
