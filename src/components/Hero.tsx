@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import heroImage from "@/assets/hero-perfume.jpg";
 
@@ -73,9 +74,10 @@ const Hero = () => {
             <Button
               variant="premium-outline"
               size="xl"
+              asChild
               className="border-primary-foreground/80 text-primary-foreground hover:bg-primary-foreground hover:text-foreground min-w-[200px]"
             >
-              Ver Catálogo
+              <Link to="/catalogo">Ver Catálogo</Link>
             </Button>
             <Button
               variant="premium-ghost"
