@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Heart } from "lucide-react";
+import { Menu, X, Heart, ShoppingBag } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useCart } from "@/hooks/useCart";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -11,6 +12,8 @@ const Header = () => {
   const location = useLocation();
   const isHomePage = location.pathname === "/";
   const { count: favoritesCount } = useFavorites();
+  const { getTotalItems } = useCart();
+  const cartCount = getTotalItems();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -83,8 +86,8 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* CTA & Favorites */}
-            <div className="hidden md:flex items-center gap-4">
+            {/* CTA, Favorites & Cart */}
+            <div className="hidden md:flex items-center gap-3">
               <Link
                 to="/favoritos"
                 className={`relative p-2 transition-colors duration-300 hover:opacity-70 ${
@@ -96,6 +99,20 @@ const Header = () => {
                 {favoritesCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-sans rounded-full flex items-center justify-center">
                     {favoritesCount > 9 ? "9+" : favoritesCount}
+                  </span>
+                )}
+              </Link>
+              <Link
+                to="/carrinho"
+                className={`relative p-2 transition-colors duration-300 hover:opacity-70 ${
+                  showScrolledStyle ? "text-foreground" : "text-primary-foreground"
+                }`}
+                aria-label="Carrinho"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-foreground text-background text-[10px] font-sans rounded-full flex items-center justify-center">
+                    {cartCount > 9 ? "9+" : cartCount}
                   </span>
                 )}
               </Link>
@@ -190,6 +207,24 @@ const Header = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}
+              >
+                <Link
+                  to="/carrinho"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-2xl font-display text-foreground flex items-center gap-3"
+                >
+                  Carrinho
+                  {cartCount > 0 && (
+                    <span className="w-6 h-6 bg-foreground text-background text-xs font-sans rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.6 }}
               >
                 <Button variant="premium" size="lg" asChild onClick={() => setIsMobileMenuOpen(false)}>
                   <Link to="/catalogo">Ver Catálogo</Link>

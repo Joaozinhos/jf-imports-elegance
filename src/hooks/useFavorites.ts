@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
+import { toast } from "sonner";
+import { products } from "@/data/products";
 
 const FAVORITES_KEY = "jf-imports-favorites";
 
@@ -23,10 +25,25 @@ export const useFavorites = () => {
 
   const toggleFavorite = useCallback(
     (productId: string) => {
-      const newFavorites = favorites.includes(productId)
+      const isCurrentlyFavorite = favorites.includes(productId);
+      const newFavorites = isCurrentlyFavorite
         ? favorites.filter((id) => id !== productId)
         : [...favorites, productId];
       saveFavorites(newFavorites);
+
+      const product = products.find((p) => p.id === productId);
+      const productName = product ? product.name : "Produto";
+
+      if (isCurrentlyFavorite) {
+        toast.info(`${productName} removido dos favoritos`);
+      } else {
+        toast.success(`${productName} adicionado aos favoritos`, {
+          action: {
+            label: "Ver Favoritos",
+            onClick: () => window.location.href = "/favoritos",
+          },
+        });
+      }
     },
     [favorites, saveFavorites]
   );
@@ -38,6 +55,7 @@ export const useFavorites = () => {
 
   const clearFavorites = useCallback(() => {
     saveFavorites([]);
+    toast.info("Todos os favoritos foram removidos");
   }, [saveFavorites]);
 
   return {

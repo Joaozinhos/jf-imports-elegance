@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Catalog from "./pages/Catalog";
 import ProductDetails from "./pages/ProductDetails";
 import Favorites from "./pages/Favorites";
+import Cart from "./pages/Cart";
 import NotFound from "./pages/NotFound";
 import WhatsAppButton from "./components/WhatsAppButton";
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/catalogo" element={<Catalog />} />
           <Route path="/produto/:id" element={<ProductDetails />} />
           <Route path="/favoritos" element={<Favorites />} />
+          <Route path="/carrinho" element={<Cart />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
