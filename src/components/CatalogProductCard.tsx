@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import { useFavorites } from "@/hooks/useFavorites";
+import FavoriteButton from "@/components/FavoriteButton";
 import type { Product } from "@/data/products";
 
 interface CatalogProductCardProps {
@@ -15,6 +17,8 @@ const categoryLabels = {
 };
 
 const CatalogProductCard = ({ product, index }: CatalogProductCardProps) => {
+  const { toggleFavorite, isFavorite } = useFavorites();
+
   const formatPrice = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
       style: "currency",
@@ -34,12 +38,14 @@ const CatalogProductCard = ({ product, index }: CatalogProductCardProps) => {
     >
       {/* Image Container */}
       <div className="relative bg-secondary/50 aspect-[3/4] mb-5 overflow-hidden">
-        <img
-          src={product.image}
-          alt={`${product.brand} ${product.name}`}
-          className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          loading="lazy"
-        />
+        <Link to={`/produto/${product.id}`}>
+          <img
+            src={product.image}
+            alt={`${product.brand} ${product.name}`}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+            loading="lazy"
+          />
+        </Link>
         
         {/* Category Badge */}
         <div className="absolute top-4 left-4">
@@ -48,8 +54,17 @@ const CatalogProductCard = ({ product, index }: CatalogProductCardProps) => {
           </span>
         </div>
 
+        {/* Favorite Button */}
+        <div className="absolute top-4 right-4">
+          <FavoriteButton
+            isFavorite={isFavorite(product.id)}
+            onToggle={() => toggleFavorite(product.id)}
+            size="sm"
+          />
+        </div>
+
         {/* Quick Action Overlay */}
-        <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-300" />
+        <div className="absolute inset-0 bg-foreground/0 group-hover:bg-foreground/10 transition-colors duration-300 pointer-events-none" />
       </div>
 
       {/* Content */}

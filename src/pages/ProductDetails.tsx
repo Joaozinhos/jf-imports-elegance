@@ -5,6 +5,8 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { products } from "@/data/products";
+import { useFavorites } from "@/hooks/useFavorites";
+import FavoriteButton from "@/components/FavoriteButton";
 import { ChevronLeft, MessageCircle } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5511999999999"; // Substitua pelo número real
@@ -13,6 +15,7 @@ const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
   const product = products.find((p) => p.id === id);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const { toggleFavorite, isFavorite } = useFavorites();
 
   if (!product) {
     return (
@@ -119,14 +122,20 @@ const ProductDetails = () => {
               className="lg:py-4"
             >
               {/* Category & Brand */}
-              <div className="flex items-center gap-4 mb-4">
-                <span className="text-muted-foreground tracking-[0.2em] uppercase text-xs">
-                  {product.brand}
-                </span>
-                <span className="w-1 h-1 bg-muted-foreground rounded-full" />
-                <span className="text-muted-foreground tracking-[0.2em] uppercase text-xs">
-                  {categoryLabels[product.category]}
-                </span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-4">
+                  <span className="text-muted-foreground tracking-[0.2em] uppercase text-xs">
+                    {product.brand}
+                  </span>
+                  <span className="w-1 h-1 bg-muted-foreground rounded-full" />
+                  <span className="text-muted-foreground tracking-[0.2em] uppercase text-xs">
+                    {categoryLabels[product.category]}
+                  </span>
+                </div>
+                <FavoriteButton
+                  isFavorite={isFavorite(product.id)}
+                  onToggle={() => toggleFavorite(product.id)}
+                />
               </div>
 
               {/* Name */}

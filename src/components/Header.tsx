@@ -1,14 +1,16 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Heart } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useFavorites } from "@/hooks/useFavorites";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
   const isHomePage = location.pathname === "/";
+  const { count: favoritesCount } = useFavorites();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -81,8 +83,22 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* CTA Button */}
-            <div className="hidden md:block">
+            {/* CTA & Favorites */}
+            <div className="hidden md:flex items-center gap-4">
+              <Link
+                to="/favoritos"
+                className={`relative p-2 transition-colors duration-300 hover:opacity-70 ${
+                  showScrolledStyle ? "text-foreground" : "text-primary-foreground"
+                }`}
+                aria-label="Favoritos"
+              >
+                <Heart className="w-5 h-5" />
+                {favoritesCount > 0 && (
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-sans rounded-full flex items-center justify-center">
+                    {favoritesCount > 9 ? "9+" : favoritesCount}
+                  </span>
+                )}
+              </Link>
               <Button
                 variant="premium-outline"
                 size="sm"
@@ -156,6 +172,24 @@ const Header = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
+              >
+                <Link
+                  to="/favoritos"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-2xl font-display text-foreground flex items-center gap-3"
+                >
+                  Favoritos
+                  {favoritesCount > 0 && (
+                    <span className="w-6 h-6 bg-red-500 text-white text-xs font-sans rounded-full flex items-center justify-center">
+                      {favoritesCount}
+                    </span>
+                  )}
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
               >
                 <Button variant="premium" size="lg" asChild onClick={() => setIsMobileMenuOpen(false)}>
                   <Link to="/catalogo">Ver Catálogo</Link>
