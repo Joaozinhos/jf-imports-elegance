@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteButton from "@/components/FavoriteButton";
+import AddToCartButton from "@/components/AddToCartButton";
 import type { Product } from "@/data/products";
 
 interface CatalogProductCardProps {
@@ -76,24 +77,29 @@ const CatalogProductCard = ({ product, index }: CatalogProductCardProps) => {
 
         {/* Name */}
         <h3 className="text-base font-display text-foreground">
-          {product.name}
+          <Link to={`/produto/${product.id}`} className="hover:text-muted-foreground transition-colors">
+            {product.name}
+          </Link>
         </h3>
 
         {/* Description & Size */}
-        <p className="text-muted-foreground text-xs font-sans">
+        <p className="text-muted-foreground text-xs font-sans line-clamp-2">
           {product.description} · {product.size}
         </p>
 
-        {/* Price & CTA */}
-        <div className="flex items-center justify-between pt-2">
+        {/* Price & CTAs */}
+        <div className="flex items-center justify-between pt-2 gap-2">
           <p className="text-foreground font-sans font-medium">
             {formatPrice(product.price)}
           </p>
-          <Link to={`/produto/${product.id}`}>
-            <Button variant="premium-outline" size="sm">
-              Ver Mais
-            </Button>
-          </Link>
+          <div className="flex items-center gap-2">
+            <AddToCartButton productId={product.id} size="sm" />
+            <Link to={`/produto/${product.id}`}>
+              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+                Ver
+              </Button>
+            </Link>
+          </div>
         </div>
       </div>
     </motion.article>

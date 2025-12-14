@@ -6,8 +6,9 @@ import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { products } from "@/data/products";
 import { useFavorites } from "@/hooks/useFavorites";
+import { useCart } from "@/hooks/useCart";
 import FavoriteButton from "@/components/FavoriteButton";
-import { ChevronLeft, MessageCircle } from "lucide-react";
+import { ChevronLeft, MessageCircle, ShoppingBag, Check } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5511999999999"; // Substitua pelo número real
 
@@ -16,6 +17,8 @@ const ProductDetails = () => {
   const product = products.find((p) => p.id === id);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { addToCart, isInCart } = useCart();
+  const inCart = isInCart(product?.id || "");
 
   if (!product) {
     return (
@@ -229,16 +232,27 @@ const ProductDetails = () => {
                 </div>
               </div>
 
-              {/* CTA */}
-              <Button
-                variant="premium"
-                size="lg"
-                onClick={handleWhatsAppPurchase}
-                className="w-full flex items-center justify-center gap-3"
-              >
-                <MessageCircle className="w-5 h-5" />
-                Comprar via WhatsApp
-              </Button>
+              {/* CTAs */}
+              <div className="flex flex-col gap-3">
+                <Button
+                  variant={inCart ? "premium" : "premium-outline"}
+                  size="lg"
+                  onClick={() => addToCart(product.id)}
+                  className="w-full flex items-center justify-center gap-3"
+                >
+                  {inCart ? <Check className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}
+                  {inCart ? "Adicionado ao Carrinho" : "Adicionar ao Carrinho"}
+                </Button>
+                <Button
+                  variant="premium"
+                  size="lg"
+                  onClick={handleWhatsAppPurchase}
+                  className="w-full flex items-center justify-center gap-3"
+                >
+                  <MessageCircle className="w-5 h-5" />
+                  Comprar via WhatsApp
+                </Button>
+              </div>
             </motion.div>
           </div>
         </div>

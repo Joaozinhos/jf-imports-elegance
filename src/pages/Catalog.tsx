@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import CatalogFilters from "@/components/CatalogFilters";
 import CatalogProductCard from "@/components/CatalogProductCard";
 import SearchBar from "@/components/SearchBar";
+import SortSelect, { SortOption } from "@/components/SortSelect";
 import { Button } from "@/components/ui/button";
 import { SlidersHorizontal, X } from "lucide-react";
 import { products, brands } from "@/data/products";
@@ -14,10 +15,11 @@ const Catalog = () => {
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("name-asc");
   const [isMobileFiltersOpen, setIsMobileFiltersOpen] = useState(false);
 
-  const filteredProducts = useMemo(() => {
-    return products.filter((product) => {
+  const filteredAndSortedProducts = useMemo(() => {
+    const filtered = products.filter((product) => {
       const matchesBrand = selectedBrands.length === 0 || selectedBrands.includes(product.brand);
       const matchesCategory = selectedCategories.length === 0 || selectedCategories.includes(product.category);
       const matchesPrice = product.price >= priceRange[0] && product.price <= priceRange[1];
@@ -26,7 +28,26 @@ const Catalog = () => {
         product.brand.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesBrand && matchesCategory && matchesPrice && matchesSearch;
     });
-  }, [selectedBrands, selectedCategories, priceRange, searchQuery]);
+
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "price-asc":
+          return a.price - b.price;
+        case "price-desc":
+          return b.price - a.price;
+        case "year-desc":
+          return b.year - a.year;
+        case "year-asc":
+          return a.year - b.year;
+        default:
+          return 0;
+      }
+    });
+  }, [selectedBrands, selectedCategories, priceRange, searchQuery, sortBy]);
 
   const clearAllFilters = () => {
     setSelectedBrands([]);
@@ -73,7 +94,7 @@ const Catalog = () => {
         <div className="container mx-auto px-6">
           <div className="flex flex-col lg:flex-row gap-8">
             {/* Mobile Filter Toggle */}
-            <div className="lg:hidden flex items-center justify-between">
+            <div className="lg:hidden flex items-center justify-between gap-4">
               <Button
                 variant="premium-outline"
                 size="default"
@@ -83,9 +104,7 @@ const Catalog = () => {
                 <SlidersHorizontal className="w-4 h-4" />
                 Filtros
               </Button>
-              <p className="text-muted-foreground text-sm">
-                {filteredProducts.length} produto{filteredProducts.length !== 1 && "s"}
-              </p>
+              <SortSelect value={sortBy} onChange={setSortBy} />
             </div>
 
             {/* Mobile Filters Overlay */}
@@ -124,7 +143,7 @@ const Catalog = () => {
                       className="w-full mt-8"
                       onClick={() => setIsMobileFiltersOpen(false)}
                     >
-                      Ver {filteredProducts.length} Resultado{filteredProducts.length !== 1 && "s"}
+                      Ver {filteredAndSortedProducts.length} Resultado{filteredAndSortedProducts.length !== 1 && "s"}
                     </Button>
                   </div>
                 </motion.div>
@@ -152,11 +171,12 @@ const Catalog = () => {
             <div className="flex-1">
               <div className="hidden lg:flex items-center justify-between mb-8">
                 <p className="text-muted-foreground text-sm">
-                  {filteredProducts.length} produto{filteredProducts.length !== 1 && "s"} encontrado{filteredProducts.length !== 1 && "s"}
+                  {filteredAndSortedProducts.length} produto{filteredAndSortedProducts.length !== 1 && "s"} encontrado{filteredAndSortedProducts.length !== 1 && "s"}
                 </p>
+                <SortSelect value={sortBy} onChange={setSortBy} />
               </div>
 
-              {filteredProducts.length === 0 ? (
+              {filteredAndSortedProducts.length === 0 ? (
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
@@ -175,7 +195,7 @@ const Catalog = () => {
                   className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8"
                 >
                   <AnimatePresence mode="popLayout">
-                    {filteredProducts.map((product, index) => (
+                    {filteredAndSortedProducts.map((product, index) => (
                       <CatalogProductCard
                         key={product.id}
                         product={product}
