@@ -1,4 +1,6 @@
 import { Instagram, Phone } from "lucide-react";
+import { Link } from "react-router-dom";
+import SecurityBadges from "./SecurityBadges";
 
 const Footer = () => {
   const currentYear = new Date().getFullYear();
@@ -6,6 +8,11 @@ const Footer = () => {
   return (
     <footer className="py-12 bg-background border-t border-divider">
       <div className="container mx-auto px-6">
+        {/* Security Badges */}
+        <div className="pb-8 mb-8 border-b border-divider">
+          <SecurityBadges />
+        </div>
+
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
           {/* Brand */}
           <div className="text-center md:text-left">
@@ -15,6 +22,22 @@ const Footer = () => {
             <p className="text-muted-foreground text-sm font-sans">
               Importados Originais
             </p>
+          </div>
+
+          {/* Links */}
+          <div className="flex items-center gap-6 text-sm font-sans">
+            <Link
+              to="/faq"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-300"
+            >
+              FAQ
+            </Link>
+            <Link
+              to="/politica-de-trocas"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-300"
+            >
+              Trocas e Devoluções
+            </Link>
           </div>
 
           {/* Social Links */}

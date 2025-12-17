@@ -4,6 +4,7 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
+import ShippingCalculator from "@/components/ShippingCalculator";
 import { ShoppingBag, Trash2, Plus, Minus, MessageCircle } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5511999999999"; // Substitua pelo número real
@@ -215,12 +216,17 @@ const Cart = () => {
                   <div className="border-t border-divider pt-4 mb-6">
                     <div className="flex justify-between">
                       <span className="text-foreground font-sans font-medium">
-                        Total
+                        Subtotal
                       </span>
                       <span className="text-foreground font-sans font-medium text-xl">
                         {formatPrice(total)}
                       </span>
                     </div>
+                  </div>
+
+                  {/* Shipping Calculator */}
+                  <div className="mb-6">
+                    <ShippingCalculator productValue={total} />
                   </div>
 
                   <Button

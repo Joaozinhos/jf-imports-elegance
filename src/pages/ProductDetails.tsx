@@ -8,6 +8,8 @@ import { products } from "@/data/products";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
 import FavoriteButton from "@/components/FavoriteButton";
+import ShippingCalculator from "@/components/ShippingCalculator";
+import AuthenticityBadge from "@/components/AuthenticityBadge";
 import { ChevronLeft, MessageCircle, ShoppingBag, Check } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5511999999999"; // Substitua pelo número real
@@ -232,6 +234,9 @@ const ProductDetails = () => {
                 </div>
               </div>
 
+              {/* Authenticity Badge */}
+              <AuthenticityBadge variant="full" />
+
               {/* CTAs */}
               <div className="flex flex-col gap-3">
                 <Button
@@ -252,6 +257,11 @@ const ProductDetails = () => {
                   <MessageCircle className="w-5 h-5" />
                   Comprar via WhatsApp
                 </Button>
+              </div>
+
+              {/* Shipping Calculator */}
+              <div className="mt-6">
+                <ShippingCalculator productValue={product.price} />
               </div>
             </motion.div>
           </div>
