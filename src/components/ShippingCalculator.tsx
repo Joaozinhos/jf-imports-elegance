@@ -3,11 +3,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Truck, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
 
 interface ShippingOption {
-  name: string;
-  price: number;
-  days: string;
+  nome: string;
+  valor: number;
+  prazo: string;
+  erro?: string;
 }
 
 interface ShippingCalculatorProps {
@@ -44,29 +46,37 @@ const ShippingCalculator = ({ productValue = 0 }: ShippingCalculatorProps) => {
     setLoading(true);
     setError(null);
 
-    // Simulated shipping calculation
-    // In production, this would call the Correios API
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke('calculate-shipping', {
+        body: { 
+          cepDestino: cleanCep,
+          valorProduto: productValue 
+        },
+      });
 
-    // Simulated response based on CEP region
-    const region = parseInt(cleanCep.charAt(0));
-    const basePrice = productValue > 299 ? 0 : 15;
-    const regionMultiplier = region <= 3 ? 1 : region <= 6 ? 1.3 : 1.5;
+      if (fnError) {
+        console.error('Edge function error:', fnError);
+        setError("Erro ao calcular frete. Tente novamente.");
+        setLoading(false);
+        return;
+      }
 
-    const options: ShippingOption[] = [
-      {
-        name: "PAC",
-        price: basePrice > 0 ? Math.round(basePrice * regionMultiplier * 100) / 100 : 0,
-        days: region <= 3 ? "5 a 8 dias úteis" : region <= 6 ? "8 a 12 dias úteis" : "10 a 15 dias úteis",
-      },
-      {
-        name: "SEDEX",
-        price: basePrice > 0 ? Math.round(basePrice * regionMultiplier * 1.8 * 100) / 100 : 0,
-        days: region <= 3 ? "2 a 4 dias úteis" : region <= 6 ? "3 a 6 dias úteis" : "5 a 8 dias úteis",
-      },
-    ];
+      if (data?.error) {
+        setError(data.error);
+        setLoading(false);
+        return;
+      }
 
-    setShippingOptions(options);
+      if (data?.options) {
+        // Filter out options with errors
+        const validOptions = data.options.filter((opt: ShippingOption) => !opt.erro);
+        setShippingOptions(validOptions.length > 0 ? validOptions : data.options);
+      }
+    } catch (err) {
+      console.error('Error calling shipping function:', err);
+      setError("Erro ao calcular frete. Tente novamente.");
+    }
+
     setLoading(false);
   };
 
@@ -125,15 +135,15 @@ const ShippingCalculator = ({ productValue = 0 }: ShippingCalculatorProps) => {
           >
             {shippingOptions.map((option) => (
               <div
-                key={option.name}
+                key={option.nome}
                 className="flex items-center justify-between py-2 border-b border-divider last:border-0"
               >
                 <div>
-                  <p className="text-sm font-sans text-foreground">{option.name}</p>
-                  <p className="text-xs text-muted-foreground">{option.days}</p>
+                  <p className="text-sm font-sans text-foreground">{option.nome}</p>
+                  <p className="text-xs text-muted-foreground">{option.prazo}</p>
                 </div>
-                <span className={`text-sm font-medium ${option.price === 0 ? "text-green-600" : "text-foreground"}`}>
-                  {formatPrice(option.price)}
+                <span className={`text-sm font-medium ${option.valor === 0 ? "text-green-600" : "text-foreground"}`}>
+                  {formatPrice(option.valor)}
                 </span>
               </div>
             ))}
