@@ -8,8 +8,11 @@ import Catalog from "./pages/Catalog";
 import ProductDetails from "./pages/ProductDetails";
 import Favorites from "./pages/Favorites";
 import Cart from "./pages/Cart";
+import FAQ from "./pages/FAQ";
+import ExchangePolicy from "./pages/ExchangePolicy";
 import NotFound from "./pages/NotFound";
 import WhatsAppButton from "./components/WhatsAppButton";
+import Chatbot from "./components/Chatbot";
 
 const queryClient = new QueryClient();
 
@@ -25,10 +28,13 @@ const App = () => (
           <Route path="/produto/:id" element={<ProductDetails />} />
           <Route path="/favoritos" element={<Favorites />} />
           <Route path="/carrinho" element={<Cart />} />
+          <Route path="/faq" element={<FAQ />} />
+          <Route path="/politica-de-trocas" element={<ExchangePolicy />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
         <WhatsAppButton />
+        <Chatbot />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
