@@ -5,6 +5,26 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Função para validar CEP
+function validateCEP(cep: string): { isValid: boolean; error?: string } {
+  if (!cep || typeof cep !== 'string') {
+    return { isValid: false, error: 'CEP é obrigatório' };
+  }
+  
+  const cleanCep = cep.replace(/\D/g, "");
+  
+  if (cleanCep.length !== 8) {
+    return { isValid: false, error: 'CEP deve ter 8 dígitos' };
+  }
+  
+  // Verificar se CEP não é sequência de zeros
+  if (cleanCep === '00000000') {
+    return { isValid: false, error: 'CEP inválido' };
+  }
+  
+  return { isValid: true };
+}
+
 // CEP origem padrão (São Paulo - pode ser configurado)
 const CEP_ORIGEM = "01310100";
 
@@ -41,12 +61,12 @@ async function calcularFrete(params: ShippingRequest): Promise<ShippingOption[]>
 
   for (const servico of servicos) {
     try {
-      // API dos Correios (calculador público)
-      const url = new URL("http://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo");
+      // API dos Correios (calculador público) - usando HTTPS
+      const url = new URL("https://ws.correios.com.br/calculador/CalcPrecoPrazo.asmx/CalcPrecoPrazo");
       url.searchParams.set("nCdEmpresa", "");
       url.searchParams.set("sDsSenha", "");
-      url.searchParams.set("sCepOrigem", CEP_ORIGEM.replace("-", ""));
-      url.searchParams.set("sCepDestino", cepDestino.replace("-", ""));
+      url.searchParams.set("sCepOrigem", CEP_ORIGEM.replace(/\D/g, ""));
+      url.searchParams.set("sCepDestino", cepDestino.replace(/\D/g, ""));
       url.searchParams.set("nVlPeso", (peso / 1000).toString()); // Converter para kg
       url.searchParams.set("nCdFormato", "1"); // Caixa/Pacote
       url.searchParams.set("nVlComprimento", comprimento.toString());
@@ -58,65 +78,114 @@ async function calcularFrete(params: ShippingRequest): Promise<ShippingOption[]>
       url.searchParams.set("sCdAvisoRecebimento", "N");
       url.searchParams.set("nCdServico", servico);
 
-      console.log(`Calling Correios API for service ${servico}:`, url.toString());
+      console.log(`[${servico}] Calling Correios API:`, url.toString());
+
+      // Timeout controller
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos
 
       const response = await fetch(url.toString(), {
         method: "GET",
         headers: {
-          "Accept": "application/xml",
+          "Accept": "application/xml, text/xml, */*",
+          "User-Agent": "Mozilla/5.0 (compatible; Edge Function)",
         },
+        signal: controller.signal,
       });
 
+      clearTimeout(timeoutId);
+
+      console.log(`[${servico}] Response status:`, response.status, response.statusText);
+
       if (!response.ok) {
-        console.error(`Correios API error for service ${servico}: ${response.status}`);
-        continue;
-      }
-
-      const xmlText = await response.text();
-      console.log(`Correios response for ${servico}:`, xmlText.substring(0, 500));
-
-      // Parse XML response
-      const valorMatch = xmlText.match(/<Valor>([^<]+)<\/Valor>/);
-      const prazoMatch = xmlText.match(/<PrazoEntrega>([^<]+)<\/PrazoEntrega>/);
-      const erroMatch = xmlText.match(/<Erro>([^<]+)<\/Erro>/);
-      const msgErroMatch = xmlText.match(/<MsgErro>([^<]*)<\/MsgErro>/);
-
-      const erro = erroMatch?.[1] || "0";
-      const msgErro = msgErroMatch?.[1] || "";
-
-      if (erro !== "0" && msgErro) {
-        console.log(`Service ${servico} error: ${msgErro}`);
+        console.error(`[${servico}] Correios API error: ${response.status} ${response.statusText}`);
         results.push({
           codigo: servico,
           nome: servico === "04014" ? "SEDEX" : "PAC",
           valor: 0,
           prazo: "",
-          erro: msgErro,
+          erro: `Erro ${response.status}: Serviço temporariamente indisponível`,
         });
         continue;
       }
 
-      const valor = valorMatch?.[1]?.replace(",", ".") || "0";
-      const prazo = prazoMatch?.[1] || "0";
+      const xmlText = await response.text();
+      console.log(`[${servico}] Raw XML response (first 300 chars):`, xmlText.substring(0, 300));
 
-      results.push({
-        codigo: servico,
-        nome: servico === "04014" ? "SEDEX" : "PAC",
-        valor: parseFloat(valor),
-        prazo: `${prazo} ${parseInt(prazo) === 1 ? "dia útil" : "dias úteis"}`,
-      });
+      // Melhor parsing do XML - buscar qualquer variação de tags
+      const valorMatch = xmlText.match(/<Valor[^>]*>([^<]+)<\/Valor>/i);
+      const prazoMatch = xmlText.match(/<PrazoEntrega[^>]*>([^<]+)<\/PrazoEntrega>/i);
+      const erroMatch = xmlText.match(/<Erro[^>]*>([^<]+)<\/Erro>/i);
+      const msgErroMatch = xmlText.match(/<MsgErro[^>]*>([^<]*)<\/MsgErro>/i);
+
+      const erro = erroMatch?.[1]?.trim() || "0";
+      const msgErro = msgErroMatch?.[1]?.trim() || "";
+
+      console.log(`[${servico}] Parsed values - Erro: ${erro}, Msg: ${msgErro}`);
+
+      if (erro !== "0" && msgErro) {
+        console.log(`[${servico}] Service error detected: ${msgErro}`);
+        results.push({
+          codigo: servico,
+          nome: servico === "04014" ? "SEDEX" : "PAC",
+          valor: 0,
+          prazo: "",
+          erro: msgErro || "Serviço indisponível para esta região",
+        });
+        continue;
+      }
+
+      const valorStr = valorMatch?.[1]?.trim().replace(",", ".") || "0";
+      const prazoStr = prazoMatch?.[1]?.trim() || "0";
+      
+      console.log(`[${servico}] Parsed pricing - Valor: ${valorStr}, Prazo: ${prazoStr}`);
+
+      const valor = parseFloat(valorStr);
+      const prazo = parseInt(prazoStr);
+
+      if (valor > 0 && prazo > 0) {
+        results.push({
+          codigo: servico,
+          nome: servico === "04014" ? "SEDEX" : "PAC",
+          valor: valor,
+          prazo: `${prazo} ${prazo === 1 ? "dia útil" : "dias úteis"}`,
+        });
+        console.log(`[${servico}] Success: R$ ${valor} in ${prazo} days`);
+      } else {
+        console.log(`[${servico}] Invalid values received - valor: ${valor}, prazo: ${prazo}`);
+        results.push({
+          codigo: servico,
+          nome: servico === "04014" ? "SEDEX" : "PAC",
+          valor: 0,
+          prazo: "",
+          erro: "Dados inválidos retornados pela API",
+        });
+      }
+
     } catch (error) {
-      console.error(`Error calculating shipping for service ${servico}:`, error);
-      results.push({
-        codigo: servico,
-        nome: servico === "04014" ? "SEDEX" : "PAC",
-        valor: 0,
-        prazo: "",
-        erro: "Erro ao calcular frete",
-      });
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error(`[${servico}] Request timeout`);
+        results.push({
+          codigo: servico,
+          nome: servico === "04014" ? "SEDEX" : "PAC",
+          valor: 0,
+          prazo: "",
+          erro: "Timeout na consulta dos Correios",
+        });
+      } else {
+        console.error(`[${servico}] Error calculating shipping:`, error);
+        results.push({
+          codigo: servico,
+          nome: servico === "04014" ? "SEDEX" : "PAC",
+          valor: 0,
+          prazo: "",
+          erro: "Erro ao conectar com os Correios",
+        });
+      }
     }
   }
 
+  console.log('Final Correios results:', JSON.stringify(results, null, 2));
   return results;
 }
 
@@ -145,31 +214,50 @@ function calcularFreteFallback(cepDestino: string, valorProduto: number): Shippi
 }
 
 serve(async (req) => {
+  console.log(`[${new Date().toISOString()}] Request received: ${req.method} ${req.url}`);
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request');
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const { cepDestino, valorProduto = 0 } = await req.json();
+  if (req.method !== 'POST') {
+    console.log(`Method not allowed: ${req.method}`);
+    return new Response(
+      JSON.stringify({ error: "Método não permitido. Use POST." }),
+      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    );
+  }
 
-    if (!cepDestino) {
+  try {
+    let requestBody;
+    try {
+      requestBody = await req.json();
+    } catch (jsonError) {
+      console.error('Invalid JSON in request body:', jsonError);
       return new Response(
-        JSON.stringify({ error: "CEP de destino é obrigatório" }),
+        JSON.stringify({ error: "Dados inválidos. JSON malformado." }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    console.log('Request body:', JSON.stringify(requestBody));
+
+    const { cepDestino, valorProduto = 0 } = requestBody;
+
+    // Validar CEP
+    const validation = validateCEP(cepDestino);
+    if (!validation.isValid) {
+      console.log(`CEP validation failed: ${validation.error}`);
+      return new Response(
+        JSON.stringify({ error: validation.error }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
     const cleanCep = cepDestino.replace(/\D/g, "");
-    
-    if (cleanCep.length !== 8) {
-      return new Response(
-        JSON.stringify({ error: "CEP inválido" }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    console.log(`Calculating shipping for CEP: ${cleanCep}, product value: ${valorProduto}`);
+    console.log(`Processing shipping calculation for CEP: ${cleanCep}, product value: R$ ${valorProduto}`);
 
     // Try Correios API first
     let options = await calcularFrete({
@@ -177,15 +265,19 @@ serve(async (req) => {
       valorDeclarado: valorProduto,
     });
 
+    console.log('Correios API results:', JSON.stringify(options, null, 2));
+
     // Check if we got valid results
     const validOptions = options.filter(opt => opt.valor > 0 && !opt.erro);
     
     if (validOptions.length === 0) {
-      console.log("Using fallback calculation");
+      console.log("No valid options from Correios API, using fallback calculation");
       options = calcularFreteFallback(cleanCep, valorProduto);
     } else {
+      console.log(`Got ${validOptions.length} valid options from Correios API`);
       // Apply free shipping for orders above R$ 299
       if (valorProduto >= 299) {
+        console.log('Applying free shipping for orders above R$ 299');
         options = options.map(opt => ({ ...opt, valor: 0 }));
       }
     }
@@ -193,20 +285,47 @@ serve(async (req) => {
     // Sort by price (PAC first, usually cheaper)
     options.sort((a, b) => a.valor - b.valor);
 
+    const response = { 
+      options,
+      freeShippingThreshold: 299,
+      cep: cleanCep,
+      success: true
+    };
+
+    console.log('Final response:', JSON.stringify(response, null, 2));
+
     return new Response(
-      JSON.stringify({ 
-        options,
-        freeShippingThreshold: 299,
-        cep: cleanCep,
-      }),
+      JSON.stringify(response),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
     console.error('Error in calculate-shipping function:', error);
-    const errorMessage = error instanceof Error ? error.message : "Erro ao calcular frete";
+    
+    let errorMessage = "Erro interno do servidor";
+    let statusCode = 500;
+
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Categorizar tipos de erro
+      if (error.message.includes('fetch')) {
+        errorMessage = "Erro ao conectar com os Correios. Tente novamente.";
+        statusCode = 503;
+      } else if (error.message.includes('timeout')) {
+        errorMessage = "Timeout na consulta. Tente novamente.";
+        statusCode = 504;
+      }
+    }
+    
+    console.error(`Returning error response: ${statusCode} - ${errorMessage}`);
+
     return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ 
+        error: errorMessage,
+        success: false,
+        timestamp: new Date().toISOString()
+      }),
+      { status: statusCode, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 });

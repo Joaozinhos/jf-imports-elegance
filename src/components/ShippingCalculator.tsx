@@ -43,10 +43,22 @@ const ShippingCalculator = ({ productValue = 0 }: ShippingCalculatorProps) => {
       return;
     }
 
+    // Validações extras de CEP
+    if (cleanCep === "00000000" || /^(.)\1{7}$/.test(cleanCep)) {
+      setError("CEP inválido. Verifique os números digitados.");
+      return;
+    }
+
     setLoading(true);
     setError(null);
+    setShippingOptions(null);
 
     try {
+      console.log('Calling calculate-shipping function with:', { 
+        cepDestino: cleanCep, 
+        valorProduto: productValue 
+      });
+
       const { data, error: fnError } = await supabase.functions.invoke('calculate-shipping', {
         body: { 
           cepDestino: cleanCep,
@@ -54,30 +66,44 @@ const ShippingCalculator = ({ productValue = 0 }: ShippingCalculatorProps) => {
         },
       });
 
+      console.log('Function response:', { data, error: fnError });
+
       if (fnError) {
         console.error('Edge function error:', fnError);
-        setError("Erro ao calcular frete. Tente novamente.");
-        setLoading(false);
+        setError("Erro de comunicação. Verifique sua conexão e tente novamente.");
         return;
       }
 
       if (data?.error) {
         setError(data.error);
-        setLoading(false);
         return;
       }
 
-      if (data?.options) {
-        // Filter out options with errors
+      if (data?.success && data?.options) {
+        // Mostrar todas as opções, incluindo as com erro para debug
+        const allOptions = data.options;
+        const validOptions = allOptions.filter((opt: ShippingOption) => !opt.erro);
+        
+        if (validOptions.length > 0) {
+          setShippingOptions(validOptions);
+        } else {
+          // Se todas as opções têm erro, mostrar a primeira com mensagem específica
+          const errorMsg = allOptions[0]?.erro || "Serviço indisponível para esta região";
+          setError(errorMsg);
+        }
+      } else if (data?.options) {
+        // Fallback para versões antigas da resposta
         const validOptions = data.options.filter((opt: ShippingOption) => !opt.erro);
         setShippingOptions(validOptions.length > 0 ? validOptions : data.options);
+      } else {
+        setError("Resposta inválida do serviço de frete.");
       }
     } catch (err) {
       console.error('Error calling shipping function:', err);
-      setError("Erro ao calcular frete. Tente novamente.");
+      setError("Erro de conexão. Verifique sua internet e tente novamente.");
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const formatPrice = (value: number) => {
