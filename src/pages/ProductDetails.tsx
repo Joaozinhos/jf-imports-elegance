@@ -10,6 +10,7 @@ import { useCart } from "@/hooks/useCart";
 import FavoriteButton from "@/components/FavoriteButton";
 import ShippingCalculator from "@/components/ShippingCalculator";
 import AuthenticityBadge from "@/components/AuthenticityBadge";
+import InstallmentDisplay from "@/components/InstallmentDisplay";
 import { ChevronLeft, MessageCircle, ShoppingBag, Check } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5511999999999"; // Substitua pelo número real
@@ -149,9 +150,12 @@ const ProductDetails = () => {
               </h1>
 
               {/* Price */}
-              <p className="text-2xl font-sans font-medium text-foreground mb-6">
+              <p className="text-2xl font-sans font-medium text-foreground mb-2">
                 {formatPrice(product.price)}
               </p>
+              
+              {/* Installments */}
+              <InstallmentDisplay price={product.price} className="mb-6" />
 
               {/* Description */}
               <p className="text-muted-foreground font-sans leading-relaxed mb-8">
