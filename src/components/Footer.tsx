@@ -25,7 +25,7 @@ const Footer = () => {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-6 text-sm font-sans">
+          <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm font-sans">
             <Link
               to="/faq"
               className="text-muted-foreground hover:text-foreground transition-colors duration-300"
@@ -37,6 +37,24 @@ const Footer = () => {
               className="text-muted-foreground hover:text-foreground transition-colors duration-300"
             >
               Trocas e Devoluções
+            </Link>
+            <Link
+              to="/politica-de-privacidade"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-300"
+            >
+              Privacidade
+            </Link>
+            <Link
+              to="/termos-de-uso"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-300"
+            >
+              Termos de Uso
+            </Link>
+            <Link
+              to="/rastreamento"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-300"
+            >
+              Rastrear Pedido
             </Link>
           </div>
 

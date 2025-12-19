@@ -175,7 +175,12 @@ const ShippingCalculator = ({ productValue = 0 }: ShippingCalculatorProps) => {
             ))}
             {productValue > 0 && productValue < 299 && (
               <p className="text-xs text-muted-foreground pt-2">
-                Frete grátis em compras acima de R$ 299
+                🚚 Frete grátis em compras acima de R$ 299
+              </p>
+            )}
+            {productValue >= 299 && shippingOptions.some(o => o.valor === 0) && (
+              <p className="text-xs text-green-600 pt-2 font-medium">
+                ✓ Você ganhou frete grátis!
               </p>
             )}
           </motion.div>

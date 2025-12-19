@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteButton from "@/components/FavoriteButton";
 import AddToCartButton from "@/components/AddToCartButton";
+import InstallmentDisplay from "@/components/InstallmentDisplay";
 import type { Product } from "@/data/products";
 
 interface CatalogProductCardProps {
@@ -87,19 +88,22 @@ const CatalogProductCard = ({ product, index }: CatalogProductCardProps) => {
           {product.description} · {product.size}
         </p>
 
-        {/* Price & CTAs */}
-        <div className="flex items-center justify-between pt-2 gap-2">
+        {/* Price & Installments */}
+        <div className="pt-2 space-y-1">
           <p className="text-foreground font-sans font-medium">
             {formatPrice(product.price)}
           </p>
-          <div className="flex items-center gap-2">
-            <AddToCartButton productId={product.id} size="sm" />
-            <Link to={`/produto/${product.id}`}>
-              <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
-                Ver
-              </Button>
-            </Link>
-          </div>
+          <InstallmentDisplay price={product.price} maxInstallments={6} className="text-xs" />
+        </div>
+
+        {/* CTAs */}
+        <div className="flex items-center gap-2 pt-2">
+          <AddToCartButton productId={product.id} size="sm" />
+          <Link to={`/produto/${product.id}`}>
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
+              Ver
+            </Button>
+          </Link>
         </div>
       </div>
     </motion.article>

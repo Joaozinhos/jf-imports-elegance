@@ -13,6 +13,8 @@ import Cart from "./pages/Cart";
 import FAQ from "./pages/FAQ";
 import ExchangePolicy from "./pages/ExchangePolicy";
 import OrderTracking from "./pages/OrderTracking";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import TermsOfUse from "./pages/TermsOfUse";
 import NotFound from "./pages/NotFound";
 import WhatsAppButton from "./components/WhatsAppButton";
 import Chatbot from "./components/Chatbot";
@@ -40,6 +42,8 @@ const App = () => {
             <Route path="/faq" element={<FAQ />} />
             <Route path="/politica-de-trocas" element={<ExchangePolicy />} />
             <Route path="/rastreamento" element={<OrderTracking />} />
+            <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
+            <Route path="/termos-de-uso" element={<TermsOfUse />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
           <WhatsAppButton />
