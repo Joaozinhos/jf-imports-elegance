@@ -14,9 +14,11 @@ interface ShippingOption {
 
 interface ShippingCalculatorProps {
   productValue?: number;
+  onShippingSelect?: (cost: number) => void;
+  compact?: boolean;
 }
 
-const ShippingCalculator = ({ productValue = 0 }: ShippingCalculatorProps) => {
+const ShippingCalculator = ({ productValue = 0, onShippingSelect, compact = false }: ShippingCalculatorProps) => {
   const [cep, setCep] = useState("");
   const [loading, setLoading] = useState(false);
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[] | null>(null);
