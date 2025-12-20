@@ -14,6 +14,45 @@ export type Database = {
   }
   public: {
     Tables: {
+      coupons: {
+        Row: {
+          active: boolean
+          code: string
+          created_at: string
+          expires_at: string | null
+          id: string
+          max_uses: number | null
+          min_purchase: number | null
+          type: string
+          used_count: number
+          value: number
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          min_purchase?: number | null
+          type: string
+          used_count?: number
+          value?: number
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          max_uses?: number | null
+          min_purchase?: number | null
+          type?: string
+          used_count?: number
+          value?: number
+        }
+        Relationships: []
+      }
       orders: {
         Row: {
           created_at: string
@@ -71,6 +110,30 @@ export type Database = {
           total_amount?: number
           tracking_code?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      stock_alerts: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          notified: boolean
+          product_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          notified?: boolean
+          product_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          notified?: boolean
+          product_id?: string
         }
         Relationships: []
       }
