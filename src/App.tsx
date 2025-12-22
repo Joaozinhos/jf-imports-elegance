@@ -41,11 +41,20 @@ const App = () => {
             <Route path="/produto/:id" element={<ProductDetails />} />
             <Route path="/favoritos" element={<Favorites />} />
             <Route path="/carrinho" element={<Cart />} />
+            
+            {/* ===================================================== */}
+            {/*           ROTAS ADICIONADAS AQUI                      */}
+            {/* ===================================================== */}
+            <Route path="/checkout" element={<Checkout />} />
+            <Route path="/pedido/:orderNumber" element={<OrderConfirmation />} />
+            
             <Route path="/faq" element={<FAQ />} />
             <Route path="/politica-de-trocas" element={<ExchangePolicy />} />
             <Route path="/rastreamento" element={<OrderTracking />} />
             <Route path="/politica-de-privacidade" element={<PrivacyPolicy />} />
             <Route path="/termos-de-uso" element={<TermsOfUse />} />
+            
+            {/* A rota "NotFound" deve ser sempre a última */}
             <Route path="*" element={<NotFound />} />
           </Routes>
           <WhatsAppButton />
