@@ -27,6 +27,12 @@ const Footer = () => {
           {/* Links */}
           <div className="flex flex-wrap items-center justify-center gap-4 md:gap-6 text-sm font-sans">
             <Link
+              to="/fidelidade"
+              className="text-primary hover:text-primary/80 transition-colors duration-300 font-medium"
+            >
+              Programa de Fidelidade
+            </Link>
+            <Link
               to="/faq"
               className="text-muted-foreground hover:text-foreground transition-colors duration-300"
             >
