@@ -22,7 +22,15 @@ const ShippingCalculator = ({ productValue = 0, onShippingSelect, compact = fals
   const [cep, setCep] = useState("");
   const [loading, setLoading] = useState(false);
   const [shippingOptions, setShippingOptions] = useState<ShippingOption[] | null>(null);
+  const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSelectOption = (option: ShippingOption) => {
+    setSelectedOption(option.nome);
+    if (onShippingSelect) {
+      onShippingSelect(option.valor);
+    }
+  };
 
   const formatCep = (value: string) => {
     const numbers = value.replace(/\D/g, "");
@@ -162,18 +170,23 @@ const ShippingCalculator = ({ productValue = 0, onShippingSelect, compact = fals
             className="mt-4 space-y-2"
           >
             {shippingOptions.map((option) => (
-              <div
+              <button
                 key={option.nome}
-                className="flex items-center justify-between py-2 border-b border-divider last:border-0"
+                onClick={() => handleSelectOption(option)}
+                className={`flex items-center justify-between w-full py-3 px-3 border transition-colors ${
+                  selectedOption === option.nome
+                    ? "border-primary bg-primary/5"
+                    : "border-divider hover:border-muted-foreground"
+                }`}
               >
-                <div>
+                <div className="text-left">
                   <p className="text-sm font-sans text-foreground">{option.nome}</p>
                   <p className="text-xs text-muted-foreground">{option.prazo}</p>
                 </div>
                 <span className={`text-sm font-medium ${option.valor === 0 ? "text-green-600" : "text-foreground"}`}>
                   {formatPrice(option.valor)}
                 </span>
-              </div>
+              </button>
             ))}
             {productValue > 0 && productValue < 299 && (
               <p className="text-xs text-muted-foreground pt-2">
