@@ -18,10 +18,10 @@ interface CreatePreferenceRequest {
     name: string;
     phone?: string;
   };
-  shipping: {
-    cost: number;
-    zip_code: string;
-  };
+  payment_method?: string;
+  shipping_cost?: number;
+  discount_amount?: number;
+  coupon_code?: string;
   external_reference?: string;
   notification_url?: string;
 }
@@ -56,7 +56,7 @@ serve(async (req) => {
     const body: CreatePreferenceRequest = await req.json();
     console.log('Creating preference for:', JSON.stringify(body, null, 2));
 
-    const { items, payer, shipping, external_reference } = body;
+    const { items, payer, shipping_cost = 0, discount_amount = 0, coupon_code, external_reference } = body;
 
     // Build Mercado Pago preference
     const mpItems: MercadoPagoItem[] = items.map(item => ({
@@ -69,12 +69,23 @@ serve(async (req) => {
     }));
 
     // Add shipping as an item if cost > 0
-    if (shipping.cost > 0) {
+    if (shipping_cost > 0) {
       mpItems.push({
         id: 'shipping',
         title: 'Frete',
         quantity: 1,
-        unit_price: shipping.cost,
+        unit_price: shipping_cost,
+        currency_id: 'BRL',
+      });
+    }
+
+    // Apply discount if any
+    if (discount_amount > 0) {
+      mpItems.push({
+        id: 'discount',
+        title: coupon_code ? `Desconto (${coupon_code})` : 'Desconto',
+        quantity: 1,
+        unit_price: -discount_amount,
         currency_id: 'BRL',
       });
     }
@@ -87,13 +98,6 @@ serve(async (req) => {
         email: payer.email,
         name: payer.name,
         phone: payer.phone ? { number: payer.phone } : undefined,
-      },
-      shipments: {
-        cost: shipping.cost,
-        mode: 'not_specified',
-        receiver_address: {
-          zip_code: shipping.zip_code,
-        },
       },
       back_urls: {
         success: `${siteUrl}/pedido-confirmado`,
