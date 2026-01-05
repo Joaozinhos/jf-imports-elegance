@@ -1,15 +1,24 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/hooks/useCart";
 import ShippingCalculator from "@/components/ShippingCalculator";
-import { ShoppingBag, Trash2, Plus, Minus, MessageCircle } from "lucide-react";
+import CouponInput from "@/components/CouponInput";
+import { ShoppingBag, Trash2, Plus, Minus, CreditCard } from "lucide-react";
 
-const WHATSAPP_NUMBER = "5511999999999"; // Substitua pelo número real
+interface Coupon {
+  id: string;
+  code: string;
+  type: "percentage" | "fixed" | "free_shipping";
+  value: number;
+  min_purchase: number;
+}
 
 const Cart = () => {
+  const navigate = useNavigate();
   const {
     getCartProducts,
     updateQuantity,
@@ -19,8 +28,11 @@ const Cart = () => {
     getTotalItems,
   } = useCart();
 
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [shippingCost, setShippingCost] = useState(0);
+
   const cartProducts = getCartProducts();
-  const total = getTotal();
+  const subtotal = getTotal();
   const totalItems = getTotalItems();
 
   const formatPrice = (value: number) => {
@@ -31,17 +43,33 @@ const Cart = () => {
     }).format(value);
   };
 
-  const handleWhatsAppCheckout = () => {
-    const itemsList = cartProducts
-      .map(
-        (item) =>
-          `• ${item.name} (${item.brand}) - ${item.size} x${item.quantity} = ${formatPrice(item.price * item.quantity)}`
-      )
-      .join("\n");
+  const calculateDiscount = () => {
+    if (!appliedCoupon) return 0;
 
-    const message = `Olá! Gostaria de finalizar meu pedido:\n\n${itemsList}\n\n*Total: ${formatPrice(total)}*\n\nAguardo informações sobre pagamento e entrega.`;
-    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
-    window.open(url, "_blank");
+    switch (appliedCoupon.type) {
+      case "percentage":
+        return (subtotal * appliedCoupon.value) / 100;
+      case "fixed":
+        return Math.min(appliedCoupon.value, subtotal);
+      case "free_shipping":
+        return 0;
+      default:
+        return 0;
+    }
+  };
+
+  const discount = calculateDiscount();
+  const finalShipping = appliedCoupon?.type === "free_shipping" ? 0 : shippingCost;
+  const total = subtotal - discount + finalShipping;
+
+  const handleProceedToCheckout = () => {
+    const checkoutData = {
+      coupon: appliedCoupon,
+      shipping: finalShipping,
+      discount,
+    };
+    sessionStorage.setItem("checkoutData", JSON.stringify(checkoutData));
+    navigate("/checkout");
   };
 
   return (
@@ -213,34 +241,71 @@ const Cart = () => {
                     ))}
                   </div>
 
-                  <div className="border-t border-divider pt-4 mb-6">
-                    <div className="flex justify-between">
-                      <span className="text-foreground font-sans font-medium">
-                        Subtotal
-                      </span>
+                  {/* Coupon Input */}
+                  <div className="mb-6">
+                    <CouponInput
+                      subtotal={subtotal}
+                      onApplyCoupon={setAppliedCoupon}
+                      appliedCoupon={appliedCoupon}
+                    />
+                  </div>
+
+                  {/* Shipping Calculator */}
+                  <div className="mb-6">
+                    <ShippingCalculator 
+                      productValue={subtotal} 
+                      onShippingSelect={(cost) => setShippingCost(cost)}
+                    />
+                  </div>
+
+                  <div className="border-t border-divider pt-4 mb-6 space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Subtotal</span>
+                      <span className="text-foreground">{formatPrice(subtotal)}</span>
+                    </div>
+                    
+                    {discount > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-primary">Desconto ({appliedCoupon?.code})</span>
+                        <span className="text-primary">-{formatPrice(discount)}</span>
+                      </div>
+                    )}
+                    
+                    {appliedCoupon?.type === "free_shipping" && shippingCost > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-primary">Frete Grátis</span>
+                        <span className="text-primary">-{formatPrice(shippingCost)}</span>
+                      </div>
+                    )}
+                    
+                    {finalShipping > 0 && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-muted-foreground">Frete</span>
+                        <span className="text-foreground">{formatPrice(finalShipping)}</span>
+                      </div>
+                    )}
+                    
+                    <div className="flex justify-between pt-2 border-t border-divider">
+                      <span className="text-foreground font-sans font-medium">Total</span>
                       <span className="text-foreground font-sans font-medium text-xl">
                         {formatPrice(total)}
                       </span>
                     </div>
                   </div>
 
-                  {/* Shipping Calculator */}
-                  <div className="mb-6">
-                    <ShippingCalculator productValue={total} />
-                  </div>
-
                   <Button
                     variant="premium"
                     size="lg"
-                    onClick={handleWhatsAppCheckout}
+                    onClick={handleProceedToCheckout}
                     className="w-full flex items-center justify-center gap-3"
+                    disabled={cartProducts.length === 0}
                   >
-                    <MessageCircle className="w-5 h-5" />
-                    Finalizar via WhatsApp
+                    <CreditCard className="w-5 h-5" />
+                    Finalizar Compra
                   </Button>
 
                   <p className="text-muted-foreground text-xs text-center mt-4">
-                    Você será redirecionado para o WhatsApp para combinar pagamento e entrega.
+                    Pagamento seguro via PIX, Cartão ou Boleto
                   </p>
                 </div>
               </div>

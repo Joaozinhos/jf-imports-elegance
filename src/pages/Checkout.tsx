@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useCart } from "@/hooks/useCart";
+import { useLoyaltyPoints } from "@/hooks/useLoyaltyPoints";
 import CouponInput from "@/components/CouponInput";
 import ShippingCalculator from "@/components/ShippingCalculator";
 import SecurityBadges from "@/components/SecurityBadges";
+import LoyaltyPointsCard from "@/components/LoyaltyPointsCard";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { 
@@ -49,12 +51,14 @@ interface Coupon {
 const Checkout = () => {
   const navigate = useNavigate();
   const { getCartProducts, getTotal, clearCart } = useCart();
+  const { addPoints, calculatePointsFromPurchase } = useLoyaltyPoints();
   const cartProducts = getCartProducts();
   const subtotal = getTotal();
 
   const [loading, setLoading] = useState(false);
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [shippingCost, setShippingCost] = useState(0);
+  const [loyaltyDiscount, setLoyaltyDiscount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "pix" | "boleto">("pix");
   
   const [formData, setFormData] = useState({
@@ -94,7 +98,7 @@ const Checkout = () => {
     }
   };
 
-  const discount = calculateDiscount();
+  const discount = calculateDiscount() + loyaltyDiscount;
   const finalShipping = appliedCoupon?.type === "free_shipping" ? 0 : shippingCost;
   const total = subtotal - discount + finalShipping;
 
@@ -204,12 +208,20 @@ const Checkout = () => {
 
       if (orderError) throw orderError;
 
+      // Add loyalty points
+      const pointsEarned = calculatePointsFromPurchase(total);
+      if (pointsEarned > 0) {
+        await addPoints(formData.email, total, orderData.id);
+      }
+
       // Send confirmation email
       await supabase.functions.invoke("send-order-email", {
         body: {
           type: "confirmation",
-          order: orderData,
-          customer: formData,
+          order: {
+            ...orderData,
+            items: orderItems,
+          },
         },
       });
 
@@ -522,6 +534,15 @@ const Checkout = () => {
                     </div>
                   ))}
                 </div>
+
+                {/* Loyalty Points */}
+                {formData.email && (
+                  <LoyaltyPointsCard
+                    email={formData.email}
+                    subtotal={subtotal}
+                    onApplyDiscount={(discount) => setLoyaltyDiscount(discount)}
+                  />
+                )}
 
                 {/* Coupon */}
                 <CouponInput
