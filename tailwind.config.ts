@@ -54,6 +54,11 @@ export default {
           subtle: "hsl(var(--text-subtle))",
         },
         divider: "hsl(var(--divider))",
+        neon: {
+          purple: "hsl(var(--neon-purple))",
+          glow: "hsl(var(--neon-purple-glow))",
+          soft: "hsl(var(--neon-purple-soft))",
+        },
       },
       fontFamily: {
         display: ["Playfair Display", "Georgia", "serif"],
