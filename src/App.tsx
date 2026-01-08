@@ -22,6 +22,8 @@ import Checkout from "./pages/Checkout";
 import OrderConfirmation from "./pages/OrderConfirmation";
 import LoyaltyProgram from "./pages/LoyaltyProgram";
 import AdminDashboard from "./pages/AdminDashboard";
+import Auth from "./pages/Auth";
+import MyAccount from "./pages/MyAccount";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +49,8 @@ const App = () => {
             <Route path="/pedido/:orderNumber" element={<OrderConfirmation />} />
             <Route path="/fidelidade" element={<LoyaltyProgram />} />
             <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/minha-conta" element={<MyAccount />} />
             <Route path="/faq" element={<FAQ />} />
             <Route path="/politica-de-trocas" element={<ExchangePolicy />} />
             <Route path="/rastreamento" element={<OrderTracking />} />

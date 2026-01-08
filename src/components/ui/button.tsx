@@ -15,13 +15,16 @@ const buttonVariants = cva(
         secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-sm",
         ghost: "hover:bg-accent hover:text-accent-foreground rounded-sm",
         link: "text-primary underline-offset-4 hover:underline",
-        // Premium variants for JF Imports
+        // Premium variants for JF Imports with purple neon accents
         premium:
-          "bg-primary text-primary-foreground hover:bg-foreground/80 tracking-[0.2em] uppercase text-xs font-sans font-medium rounded-none",
+          "bg-primary text-primary-foreground hover:bg-primary/80 tracking-[0.2em] uppercase text-xs font-sans font-medium rounded-none neon-glow",
         "premium-outline":
-          "border border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background tracking-[0.2em] uppercase text-xs font-sans font-medium rounded-none",
+          "border border-primary bg-transparent text-primary hover:bg-primary hover:text-primary-foreground tracking-[0.2em] uppercase text-xs font-sans font-medium rounded-none hover:neon-glow",
         "premium-ghost":
-          "bg-transparent text-foreground hover:bg-muted tracking-[0.2em] uppercase text-xs font-sans font-medium underline-offset-4 hover:underline rounded-none",
+          "bg-transparent text-primary hover:bg-accent tracking-[0.2em] uppercase text-xs font-sans font-medium underline-offset-4 hover:underline rounded-none",
+        // New neon variant for special CTAs
+        neon:
+          "bg-neon-purple text-white hover:bg-neon-glow tracking-[0.15em] uppercase text-xs font-sans font-semibold rounded-sm neon-glow",
       },
       size: {
         default: "h-10 px-4 py-2",

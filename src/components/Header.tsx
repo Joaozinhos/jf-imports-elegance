@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, Heart, ShoppingBag } from "lucide-react";
+import { Menu, X, Heart, ShoppingBag, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
+import { useAuth } from "@/hooks/useAuth";
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -14,6 +15,7 @@ const Header = () => {
   const { count: favoritesCount } = useFavorites();
   const { getTotalItems } = useCart();
   const cartCount = getTotalItems();
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -86,7 +88,7 @@ const Header = () => {
               ))}
             </nav>
 
-            {/* CTA, Favorites & Cart */}
+            {/* CTA, Account, Favorites & Cart */}
             <div className="hidden md:flex items-center gap-3">
               <Link
                 to="/favoritos"
@@ -111,20 +113,33 @@ const Header = () => {
               >
                 <ShoppingBag className="w-5 h-5" />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-foreground text-background text-[10px] font-sans rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-sans rounded-full flex items-center justify-center">
                     {cartCount > 9 ? "9+" : cartCount}
                   </span>
                 )}
               </Link>
+              
+              {/* Account Button */}
+              {!authLoading && (
+                <Link
+                  to={user ? "/minha-conta" : "/auth"}
+                  className={`relative p-2 transition-colors duration-300 hover:opacity-70 ${
+                    showScrolledStyle ? "text-foreground" : "text-primary-foreground"
+                  }`}
+                  aria-label={user ? "Minha Conta" : "Entrar"}
+                >
+                  <User className="w-5 h-5" />
+                  {user && (
+                    <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-primary rounded-full" />
+                  )}
+                </Link>
+              )}
+              
               <Button
-                variant="premium-outline"
+                variant="premium"
                 size="sm"
                 asChild
-                className={`transition-colors duration-300 ${
-                  showScrolledStyle
-                    ? "border-foreground text-foreground hover:bg-foreground hover:text-background"
-                    : "border-primary-foreground text-primary-foreground hover:bg-primary-foreground hover:text-foreground"
-                }`}
+                className="ml-2"
               >
                 <Link to="/catalogo">Comprar</Link>
               </Button>
@@ -218,6 +233,22 @@ const Header = () => {
                     <span className="w-6 h-6 bg-foreground text-background text-xs font-sans rounded-full flex items-center justify-center">
                       {cartCount}
                     </span>
+                  )}
+                </Link>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.55 }}
+              >
+                <Link
+                  to={user ? "/minha-conta" : "/auth"}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-2xl font-display text-foreground flex items-center gap-3"
+                >
+                  {user ? "Minha Conta" : "Entrar"}
+                  {user && (
+                    <span className="w-2 h-2 bg-primary rounded-full" />
                   )}
                 </Link>
               </motion.div>
