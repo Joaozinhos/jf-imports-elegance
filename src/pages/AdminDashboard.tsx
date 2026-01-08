@@ -65,10 +65,9 @@ interface Coupon {
   expires_at: string | null;
 }
 
-const ADMIN_PASSWORD = "jfimports2024";
-
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [adminSecret, setAdminSecret] = useState("");
   const [password, setPassword] = useState("");
   const [activeTab, setActiveTab] = useState<"orders" | "coupons">("orders");
   const [orders, setOrders] = useState<Order[]>([]);
@@ -94,43 +93,63 @@ const AdminDashboard = () => {
   });
   const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
 
-  const handleLogin = () => {
-    if (password === ADMIN_PASSWORD) {
+  // Admin API call helper
+  const adminCall = async (action: string, data?: any) => {
+    const { data: result, error } = await supabase.functions.invoke("admin", {
+      body: { action, data },
+      headers: { "x-admin-secret": adminSecret },
+    });
+    
+    if (error) throw error;
+    if (result?.error) throw new Error(result.error);
+    return result;
+  };
+
+  const handleLogin = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin", {
+        body: { action: "login", password },
+      });
+      
+      if (error || data?.error) {
+        toast.error(data?.error || "Erro ao fazer login");
+        return;
+      }
+      
+      // Store the password as admin secret for subsequent calls
+      setAdminSecret(password);
       setIsAuthenticated(true);
       toast.success("Login realizado com sucesso!");
-    } else {
-      toast.error("Senha incorreta");
+    } catch (err) {
+      toast.error("Erro ao fazer login");
+    } finally {
+      setLoading(false);
     }
   };
 
   const fetchOrders = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("orders")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (error) {
+    try {
+      const result = await adminCall("get_orders");
+      setOrders(result.orders || []);
+    } catch (err) {
       toast.error("Erro ao carregar pedidos");
-    } else {
-      setOrders(data || []);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const fetchCoupons = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("coupons")
-      .select("*")
-      .order("created_at", { ascending: false });
-    
-    if (error) {
+    try {
+      const result = await adminCall("get_coupons");
+      setCoupons(result.coupons || []);
+    } catch (err) {
       toast.error("Erro ao carregar cupons");
-    } else {
-      setCoupons(data || []);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   useEffect(() => {
@@ -182,14 +201,8 @@ const AdminDashboard = () => {
     if (trackingCode) updates.tracking_code = trackingCode;
     if (orderStatus) updates.status = orderStatus;
 
-    const { error } = await supabase
-      .from("orders")
-      .update(updates)
-      .eq("id", selectedOrder.id);
-
-    if (error) {
-      toast.error("Erro ao atualizar pedido");
-    } else {
+    try {
+      await adminCall("update_order", { id: selectedOrder.id, updates });
       toast.success("Pedido atualizado!");
       fetchOrders();
       setOrderDialogOpen(false);
@@ -206,6 +219,8 @@ const AdminDashboard = () => {
           },
         });
       }
+    } catch (err) {
+      toast.error("Erro ao atualizar pedido");
     }
   };
 
@@ -220,57 +235,40 @@ const AdminDashboard = () => {
       active: true,
     };
 
-    if (editingCoupon) {
-      const { error } = await supabase
-        .from("coupons")
-        .update(couponData)
-        .eq("id", editingCoupon.id);
-
-      if (error) {
-        toast.error("Erro ao atualizar cupom");
-      } else {
+    try {
+      if (editingCoupon) {
+        await adminCall("update_coupon", { id: editingCoupon.id, updates: couponData });
         toast.success("Cupom atualizado!");
-        fetchCoupons();
-        setCouponDialogOpen(false);
-        resetCouponForm();
-      }
-    } else {
-      const { error } = await supabase.from("coupons").insert([couponData]);
-
-      if (error) {
-        toast.error("Erro ao criar cupom");
       } else {
+        await adminCall("create_coupon", couponData);
         toast.success("Cupom criado!");
-        fetchCoupons();
-        setCouponDialogOpen(false);
-        resetCouponForm();
       }
+      fetchCoupons();
+      setCouponDialogOpen(false);
+      resetCouponForm();
+    } catch (err) {
+      toast.error("Erro ao salvar cupom");
     }
   };
 
   const handleDeleteCoupon = async (id: string) => {
     if (!confirm("Deseja realmente excluir este cupom?")) return;
 
-    const { error } = await supabase.from("coupons").delete().eq("id", id);
-
-    if (error) {
-      toast.error("Erro ao excluir cupom");
-    } else {
+    try {
+      await adminCall("delete_coupon", { id });
       toast.success("Cupom excluído!");
       fetchCoupons();
+    } catch (err) {
+      toast.error("Erro ao excluir cupom");
     }
   };
 
   const handleToggleCoupon = async (coupon: Coupon) => {
-    const { error } = await supabase
-      .from("coupons")
-      .update({ active: !coupon.active })
-      .eq("id", coupon.id);
-
-    if (error) {
-      toast.error("Erro ao atualizar cupom");
-    } else {
+    try {
+      await adminCall("toggle_coupon", { id: coupon.id, active: !coupon.active });
       fetchCoupons();
+    } catch (err) {
+      toast.error("Erro ao atualizar cupom");
     }
   };
 
@@ -342,8 +340,13 @@ const AdminDashboard = () => {
                 />
               </div>
             </div>
-            <Button variant="premium" className="w-full" onClick={handleLogin}>
-              Entrar
+            <Button 
+              variant="premium" 
+              className="w-full" 
+              onClick={handleLogin}
+              disabled={loading}
+            >
+              {loading ? "Verificando..." : "Entrar"}
             </Button>
           </div>
         </motion.div>
@@ -367,7 +370,11 @@ const AdminDashboard = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setIsAuthenticated(false)}
+              onClick={() => {
+                setIsAuthenticated(false);
+                setAdminSecret("");
+                setPassword("");
+              }}
             >
               Sair
             </Button>
@@ -500,7 +507,11 @@ const AdminDashboard = () => {
                       <TableCell className="text-right">
                         <Dialog open={orderDialogOpen && selectedOrder?.id === order.id} onOpenChange={(open) => {
                           setOrderDialogOpen(open);
-                          if (!open) setSelectedOrder(null);
+                          if (!open) {
+                            setSelectedOrder(null);
+                            setTrackingCode("");
+                            setOrderStatus("");
+                          }
                         }}>
                           <DialogTrigger asChild>
                             <Button
@@ -526,7 +537,7 @@ const AdminDashboard = () => {
                                 <select
                                   value={orderStatus}
                                   onChange={(e) => setOrderStatus(e.target.value)}
-                                  className="w-full border border-divider bg-background p-2 rounded mt-1"
+                                  className="w-full mt-1 p-2 border border-divider bg-background rounded"
                                 >
                                   <option value="pending">Pendente</option>
                                   <option value="paid">Pago</option>
@@ -539,12 +550,16 @@ const AdminDashboard = () => {
                                 <Label>Código de Rastreio</Label>
                                 <Input
                                   value={trackingCode}
-                                  onChange={(e) => setTrackingCode(e.target.value.toUpperCase())}
-                                  placeholder="Ex: BR123456789BR"
+                                  onChange={(e) => setTrackingCode(e.target.value)}
+                                  placeholder="Ex: AA123456789BR"
                                 />
                               </div>
-                              <Button variant="premium" className="w-full" onClick={handleUpdateOrder}>
-                                Salvar Alterações
+                              <Button
+                                variant="premium"
+                                className="w-full"
+                                onClick={handleUpdateOrder}
+                              >
+                                Salvar
                               </Button>
                             </div>
                           </DialogContent>
@@ -562,7 +577,6 @@ const AdminDashboard = () => {
         {activeTab === "coupons" && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-display text-foreground">Gerenciar Cupons</h2>
               <Dialog open={couponDialogOpen} onOpenChange={(open) => {
                 setCouponDialogOpen(open);
                 if (!open) resetCouponForm();
@@ -576,7 +590,7 @@ const AdminDashboard = () => {
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>
-                      {editingCoupon ? "Editar Cupom" : "Criar Cupom"}
+                      {editingCoupon ? "Editar Cupom" : "Novo Cupom"}
                     </DialogTitle>
                   </DialogHeader>
                   <div className="space-y-4 py-4">
@@ -585,7 +599,7 @@ const AdminDashboard = () => {
                       <Input
                         value={couponForm.code}
                         onChange={(e) =>
-                          setCouponForm({ ...couponForm, code: e.target.value.toUpperCase() })
+                          setCouponForm({ ...couponForm, code: e.target.value })
                         }
                         placeholder="DESCONTO10"
                       />
@@ -597,17 +611,14 @@ const AdminDashboard = () => {
                         onChange={(e) =>
                           setCouponForm({ ...couponForm, type: e.target.value })
                         }
-                        className="w-full border border-divider bg-background p-2 rounded mt-1"
+                        className="w-full mt-1 p-2 border border-divider bg-background rounded"
                       >
                         <option value="percentage">Porcentagem (%)</option>
                         <option value="fixed">Valor Fixo (R$)</option>
-                        <option value="free_shipping">Frete Grátis</option>
                       </select>
                     </div>
                     <div>
-                      <Label>
-                        Valor {couponForm.type === "percentage" ? "(%)" : "(R$)"}
-                      </Label>
+                      <Label>Valor</Label>
                       <Input
                         type="number"
                         value={couponForm.value}
@@ -615,7 +626,6 @@ const AdminDashboard = () => {
                           setCouponForm({ ...couponForm, value: e.target.value })
                         }
                         placeholder={couponForm.type === "percentage" ? "10" : "50"}
-                        disabled={couponForm.type === "free_shipping"}
                       />
                     </div>
                     <div>
@@ -624,18 +634,24 @@ const AdminDashboard = () => {
                         type="number"
                         value={couponForm.min_purchase}
                         onChange={(e) =>
-                          setCouponForm({ ...couponForm, min_purchase: e.target.value })
+                          setCouponForm({
+                            ...couponForm,
+                            min_purchase: e.target.value,
+                          })
                         }
                         placeholder="100"
                       />
                     </div>
                     <div>
-                      <Label>Limite de Uso</Label>
+                      <Label>Máximo de Usos</Label>
                       <Input
                         type="number"
                         value={couponForm.max_uses}
                         onChange={(e) =>
-                          setCouponForm({ ...couponForm, max_uses: e.target.value })
+                          setCouponForm({
+                            ...couponForm,
+                            max_uses: e.target.value,
+                          })
                         }
                         placeholder="Ilimitado"
                       />
@@ -646,16 +662,26 @@ const AdminDashboard = () => {
                         type="date"
                         value={couponForm.expires_at}
                         onChange={(e) =>
-                          setCouponForm({ ...couponForm, expires_at: e.target.value })
+                          setCouponForm({
+                            ...couponForm,
+                            expires_at: e.target.value,
+                          })
                         }
                       />
                     </div>
-                    <Button variant="premium" className="w-full" onClick={handleCreateCoupon}>
+                    <Button
+                      variant="premium"
+                      className="w-full"
+                      onClick={handleCreateCoupon}
+                    >
                       {editingCoupon ? "Atualizar" : "Criar"} Cupom
                     </Button>
                   </div>
                 </DialogContent>
               </Dialog>
+              <Button variant="outline" onClick={fetchCoupons} disabled={loading}>
+                <RefreshCw className={`w-4 h-4 ${loading ? "animate-spin" : ""}`} />
+              </Button>
             </div>
 
             <div className="border border-divider overflow-hidden">
@@ -665,8 +691,8 @@ const AdminDashboard = () => {
                     <TableHead>Código</TableHead>
                     <TableHead>Tipo</TableHead>
                     <TableHead>Valor</TableHead>
-                    <TableHead>Mín. Compra</TableHead>
-                    <TableHead>Uso</TableHead>
+                    <TableHead>Min. Compra</TableHead>
+                    <TableHead>Usos</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -674,34 +700,41 @@ const AdminDashboard = () => {
                 <TableBody>
                   {coupons.map((coupon) => (
                     <TableRow key={coupon.id}>
-                      <TableCell className="font-mono font-bold">{coupon.code}</TableCell>
+                      <TableCell className="font-medium">{coupon.code}</TableCell>
                       <TableCell>
-                        {coupon.type === "percentage" && "Porcentagem"}
-                        {coupon.type === "fixed" && "Valor Fixo"}
-                        {coupon.type === "free_shipping" && "Frete Grátis"}
+                        {coupon.type === "percentage" ? "%" : "R$"}
                       </TableCell>
                       <TableCell>
-                        {coupon.type === "percentage" && `${coupon.value}%`}
-                        {coupon.type === "fixed" && formatPrice(coupon.value)}
-                        {coupon.type === "free_shipping" && "-"}
+                        {coupon.type === "percentage"
+                          ? `${coupon.value}%`
+                          : formatPrice(coupon.value)}
                       </TableCell>
                       <TableCell>
-                        {coupon.min_purchase ? formatPrice(coupon.min_purchase) : "-"}
+                        {coupon.min_purchase
+                          ? formatPrice(coupon.min_purchase)
+                          : "-"}
                       </TableCell>
                       <TableCell>
-                        {coupon.used_count} / {coupon.max_uses || "∞"}
+                        {coupon.used_count}
+                        {coupon.max_uses ? ` / ${coupon.max_uses}` : ""}
                       </TableCell>
                       <TableCell>
-                        <button
+                        <Button
+                          variant="ghost"
+                          size="sm"
                           onClick={() => handleToggleCoupon(coupon)}
-                          className={`px-2 py-1 text-xs rounded ${
+                          className={
                             coupon.active
-                              ? "bg-green-500/10 text-green-500"
-                              : "bg-red-500/10 text-red-500"
-                          }`}
+                              ? "text-green-500 hover:text-green-600"
+                              : "text-red-500 hover:text-red-600"
+                          }
                         >
-                          {coupon.active ? "Ativo" : "Inativo"}
-                        </button>
+                          {coupon.active ? (
+                            <CheckCircle className="w-4 h-4" />
+                          ) : (
+                            <XCircle className="w-4 h-4" />
+                          )}
+                        </Button>
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex items-center justify-end gap-2">
