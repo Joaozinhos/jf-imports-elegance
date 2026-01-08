@@ -123,6 +123,7 @@ export type Database = {
       }
       orders: {
         Row: {
+          access_token: string | null
           created_at: string
           customer_address: string | null
           customer_cep: string
@@ -142,6 +143,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          access_token?: string | null
           created_at?: string
           customer_address?: string | null
           customer_cep: string
@@ -161,6 +163,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          access_token?: string | null
           created_at?: string
           customer_address?: string | null
           customer_cep?: string
