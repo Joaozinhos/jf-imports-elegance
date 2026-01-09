@@ -187,6 +187,63 @@ export type Database = {
         }
         Relationships: []
       }
+      products: {
+        Row: {
+          active: boolean
+          brand: string
+          category: string
+          concentration: string | null
+          created_at: string
+          description: string | null
+          id: string
+          image: string
+          images: Json | null
+          name: string
+          notes: Json | null
+          price: number
+          size: string
+          stock: number
+          updated_at: string
+          year: number | null
+        }
+        Insert: {
+          active?: boolean
+          brand: string
+          category: string
+          concentration?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image: string
+          images?: Json | null
+          name: string
+          notes?: Json | null
+          price: number
+          size: string
+          stock?: number
+          updated_at?: string
+          year?: number | null
+        }
+        Update: {
+          active?: boolean
+          brand?: string
+          category?: string
+          concentration?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          image?: string
+          images?: Json | null
+          name?: string
+          notes?: Json | null
+          price?: number
+          size?: string
+          stock?: number
+          updated_at?: string
+          year?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -264,7 +321,18 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      customer_stats: {
+        Row: {
+          customer_email: string | null
+          customer_name: string | null
+          customer_phone: string | null
+          first_order_date: string | null
+          last_order_date: string | null
+          total_orders: number | null
+          total_spent: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       generate_order_number: { Args: never; Returns: string }
