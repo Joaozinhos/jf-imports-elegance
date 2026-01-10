@@ -52,6 +52,7 @@ interface Order {
   shipping_amount: number;
   status: string;
   tracking_code?: string;
+  access_token?: string;
 }
 
 interface EmailRequest {
@@ -183,6 +184,19 @@ const getEmailContent = (type: string, order: Order) => {
         <div style="background-color: #d4af37; color: #1a1a1a; padding: 15px 20px; text-align: center; margin: 20px 0;">
           <strong>Número do Pedido: ${order.order_number}</strong>
         </div>
+        ${order.access_token ? `
+        <div style="margin-top: 20px; padding: 15px; background-color: #f0f0f0; border-radius: 8px;">
+          <p style="margin: 0 0 10px; color: #666; font-size: 14px;">
+            <strong>Código de Acesso para Rastreamento:</strong>
+          </p>
+          <p style="margin: 0; color: #1a1a1a; font-size: 16px; font-family: monospace; background-color: #fff; padding: 10px; border-radius: 4px; word-break: break-all;">
+            ${order.access_token}
+          </p>
+          <p style="margin: 10px 0 0; color: #888; font-size: 12px;">
+            Use este código para acompanhar seu pedido em nosso site.
+          </p>
+        </div>
+        ` : ''}
       `;
       break;
 

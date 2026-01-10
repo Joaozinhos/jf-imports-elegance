@@ -321,18 +321,7 @@ export type Database = {
       }
     }
     Views: {
-      customer_stats: {
-        Row: {
-          customer_email: string | null
-          customer_name: string | null
-          customer_phone: string | null
-          first_order_date: string | null
-          last_order_date: string | null
-          total_orders: number | null
-          total_spent: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
       generate_order_number: { Args: never; Returns: string }

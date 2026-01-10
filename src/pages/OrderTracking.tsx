@@ -37,7 +37,7 @@ interface Order {
 }
 
 const OrderTracking = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [accessToken, setAccessToken] = useState("");
   const [order, setOrder] = useState<Order | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -52,8 +52,8 @@ const OrderTracking = () => {
   };
 
   const searchOrder = async () => {
-    if (!searchQuery.trim()) {
-      setError("Digite o número do pedido ou email");
+    if (!accessToken.trim()) {
+      setError("Digite o código de acesso do pedido");
       return;
     }
 
@@ -62,38 +62,35 @@ const OrderTracking = () => {
     setOrder(null);
 
     try {
-      const isEmail = searchQuery.includes("@");
-      let query = supabase
+      // Query using access_token for secure order lookup
+      const { data, error: queryError } = await supabase
         .from("orders")
-        .select("*");
-
-      if (isEmail) {
-        query = query.eq("customer_email", searchQuery.toLowerCase());
-      } else {
-        query = query.eq("order_number", searchQuery.toUpperCase());
-      }
-
-      const { data, error: queryError } = await query.order("created_at", { ascending: false });
+        .select("*")
+        .eq("access_token", accessToken.trim())
+        .single();
 
       if (queryError) {
-        console.error("Error fetching order:", queryError);
-        setError("Erro ao consultar pedido. Tente novamente.");
+        if (queryError.code === 'PGRST116') {
+          setError("Nenhum pedido encontrado. Verifique o código de acesso e tente novamente.");
+        } else {
+          console.error("Error fetching order:", queryError);
+          setError("Erro ao consultar pedido. Tente novamente.");
+        }
         return;
       }
 
-      if (!data || data.length === 0) {
-        setError("Nenhum pedido encontrado. Verifique os dados e tente novamente.");
+      if (!data) {
+        setError("Nenhum pedido encontrado. Verifique o código de acesso e tente novamente.");
         return;
       }
 
-      // Se buscar por email, pegar o pedido mais recente e parse items JSON
-      const orderData = data[0];
+      // Parse items JSON
       const parsedOrder = {
-        ...orderData,
-        items: typeof orderData.items === 'string' 
-          ? JSON.parse(orderData.items) 
-          : Array.isArray(orderData.items) 
-            ? orderData.items 
+        ...data,
+        items: typeof data.items === 'string' 
+          ? JSON.parse(data.items) 
+          : Array.isArray(data.items) 
+            ? data.items 
             : []
       };
       setOrder(parsedOrder);
@@ -143,7 +140,7 @@ const OrderTracking = () => {
               Rastreamento de Pedidos
             </h1>
             <p className="text-muted-foreground">
-              Digite seu número de pedido ou email para acompanhar o status da entrega
+              Digite o código de acesso enviado no email de confirmação do pedido
             </p>
           </div>
 
@@ -159,10 +156,10 @@ const OrderTracking = () => {
               <form onSubmit={handleSubmit} className="flex gap-4">
                 <Input
                   type="text"
-                  placeholder="Número do pedido (ex: JF20241218-1234) ou email"
-                  value={searchQuery}
+                  placeholder="Código de acesso (enviado no email de confirmação)"
+                  value={accessToken}
                   onChange={(e) => {
-                    setSearchQuery(e.target.value);
+                    setAccessToken(e.target.value);
                     setError(null);
                   }}
                   className="flex-1"
