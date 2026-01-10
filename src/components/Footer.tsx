@@ -17,7 +17,7 @@ const Footer = () => {
           {/* Brand */}
           <div className="text-center md:text-left">
             <h3 className="text-xl font-display text-foreground mb-1">
-              JF Imports
+              JF D'LUXO
             </h3>
             <p className="text-muted-foreground text-sm font-sans">
               Importados Originais
@@ -88,7 +88,7 @@ const Footer = () => {
 
           {/* Copyright */}
           <p className="text-muted-foreground text-xs font-sans text-center md:text-right">
-            © {currentYear} JF Imports. Todos os direitos reservados.
+            © {currentYear} JF D'LUXO. Todos os direitos reservados.
           </p>
         </div>
       </div>

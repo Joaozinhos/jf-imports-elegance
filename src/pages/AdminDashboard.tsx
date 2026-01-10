@@ -363,7 +363,7 @@ const AdminDashboard = () => {
               <Shield className="w-8 h-8 text-primary" />
               <div>
                 <h1 className="text-xl font-display text-foreground">Admin Dashboard</h1>
-                <p className="text-sm text-muted-foreground">JF Imports</p>
+                <p className="text-sm text-muted-foreground">JF D'LUXO</p>
               </div>
             </div>
             <Button variant="outline" size="sm" onClick={() => { setIsAuthenticated(false); setAdminSecret(""); setPassword(""); }}>

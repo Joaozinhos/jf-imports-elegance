@@ -20,7 +20,7 @@ const Trust = () => {
           <div className="w-12 h-px bg-primary-foreground/30 mx-auto mt-10 mb-8" />
           
           <p className="text-primary-foreground/60 tracking-[0.3em] uppercase text-xs font-sans">
-            JF Imports — Compromisso com Excelência
+            JF D'LUXO — Compromisso com Excelência
           </p>
         </motion.div>
       </div>

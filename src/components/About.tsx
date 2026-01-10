@@ -22,7 +22,7 @@ const About = () => {
           <div className="w-12 h-px bg-foreground/20 mx-auto mb-8" />
           
           <p className="text-muted-foreground leading-relaxed text-base md:text-lg font-sans">
-            A JF Imports nasceu com o propósito de trazer até você produtos importados 
+            A JF D'LUXO nasceu com o propósito de trazer até você produtos importados 
             selecionados com rigor e qualidade. Começamos nossa jornada com perfumes 
             das marcas mais prestigiadas do mundo, garantindo autenticidade e procedência 
             em cada frasco. Nosso compromisso é expandir continuamente nosso catálogo, 

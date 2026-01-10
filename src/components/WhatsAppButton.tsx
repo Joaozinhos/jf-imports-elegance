@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { MessageCircle } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5511999999999"; // Substitua pelo número real
-const DEFAULT_MESSAGE = "Olá! Gostaria de saber mais sobre os produtos da JF Imports.";
+const DEFAULT_MESSAGE = "Olá! Gostaria de saber mais sobre os produtos da JF D'LUXO.";
 
 const WhatsAppButton = () => {
   const handleClick = () => {

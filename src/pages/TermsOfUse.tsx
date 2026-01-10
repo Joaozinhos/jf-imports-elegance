@@ -46,7 +46,7 @@ const TermsOfUse = () => {
               <section>
                 <h2 className="text-xl font-display text-foreground mb-4">1. Aceitação dos Termos</h2>
                 <p>
-                  Ao acessar e utilizar o site da JF Imports, você concorda integralmente com estes 
+                  Ao acessar e utilizar o site da JF D'LUXO, você concorda integralmente com estes 
                   Termos e Condições de Uso. Se não concordar com qualquer parte destes termos, 
                   não utilize nosso site.
                 </p>
@@ -55,7 +55,7 @@ const TermsOfUse = () => {
               <section>
                 <h2 className="text-xl font-display text-foreground mb-4">2. Descrição do Serviço</h2>
                 <p>
-                  A JF Imports é uma loja virtual especializada na venda de perfumes importados 
+                  A JF D'LUXO é uma loja virtual especializada na venda de perfumes importados 
                   originais. Comercializamos produtos autênticos de marcas internacionalmente 
                   reconhecidas.
                 </p>
@@ -127,7 +127,7 @@ const TermsOfUse = () => {
                 <h2 className="text-xl font-display text-foreground mb-4">9. Propriedade Intelectual</h2>
                 <p>
                   Todo o conteúdo do site (textos, imagens, logos, layout) é de propriedade da 
-                  JF Imports ou licenciado para uso. É proibida a reprodução sem autorização prévia.
+                  JF D'LUXO ou licenciado para uso. É proibida a reprodução sem autorização prévia.
                 </p>
               </section>
 

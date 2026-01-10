@@ -46,7 +46,7 @@ const ExchangePolicy = () => {
                   Garantia de Autenticidade
                 </h2>
                 <p className="text-muted-foreground font-sans text-sm">
-                  Todos os produtos JF Imports são 100% originais e importados legalmente. 
+                  Todos os produtos JF D'LUXO são 100% originais e importados legalmente. 
                   Garantimos a procedência e autenticidade de cada item.
                 </p>
               </div>
@@ -67,7 +67,7 @@ const ExchangePolicy = () => {
                 </div>
                 <div className="space-y-4 text-muted-foreground font-sans leading-relaxed">
                   <p>
-                    Na JF Imports, queremos que você esteja completamente satisfeito com sua compra. 
+                    Na JF D'LUXO, queremos que você esteja completamente satisfeito com sua compra. 
                     Caso precise realizar uma troca, seguimos as seguintes diretrizes:
                   </p>
                   <ul className="list-disc list-inside space-y-2 pl-4">
@@ -84,7 +84,7 @@ const ExchangePolicy = () => {
                     </li>
                     <li>
                       <strong className="text-foreground">Frete de troca:</strong> Para trocas por insatisfação, o frete de envio é por 
-                      conta do cliente. Em caso de defeito ou erro no envio, a JF Imports arca com os custos.
+                      conta do cliente. Em caso de defeito ou erro no envio, a JF D'LUXO arca com os custos.
                     </li>
                   </ul>
                 </div>
@@ -155,7 +155,7 @@ const ExchangePolicy = () => {
                       reembolso integral, à sua escolha.
                     </li>
                     <li>
-                      <strong className="text-foreground">Frete:</strong> A JF Imports arca com todos os custos de envio em caso 
+                      <strong className="text-foreground">Frete:</strong> A JF D'LUXO arca com todos os custos de envio em caso 
                       de defeito ou erro no pedido.
                     </li>
                   </ul>
@@ -175,7 +175,7 @@ const ExchangePolicy = () => {
                 </div>
                 <div className="space-y-4 text-muted-foreground font-sans leading-relaxed">
                   <p>
-                    A JF Imports garante a autenticidade e originalidade de todos os produtos comercializados:
+                    A JF D'LUXO garante a autenticidade e originalidade de todos os produtos comercializados:
                   </p>
                   <ul className="list-disc list-inside space-y-2 pl-4">
                     <li>

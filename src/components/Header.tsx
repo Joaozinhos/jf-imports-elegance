@@ -57,7 +57,7 @@ const Header = () => {
                   showScrolledStyle ? "text-foreground" : "text-primary-foreground"
                 }`}
               >
-                JF Imports
+                JF D'LUXO
               </h1>
             </Link>
 
