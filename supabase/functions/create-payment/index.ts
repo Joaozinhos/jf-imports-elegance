@@ -111,7 +111,7 @@ serve(async (req) => {
         installments: 12,
         default_installments: 1,
       },
-      statement_descriptor: 'JF IMPORTS',
+      statement_descriptor: 'JF DLUXO',
     };
 
     console.log('Sending to Mercado Pago:', JSON.stringify(preference, null, 2));

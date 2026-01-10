@@ -46,7 +46,7 @@ const PrivacyPolicy = () => {
               <section>
                 <h2 className="text-xl font-display text-foreground mb-4">1. Introdução</h2>
                 <p>
-                  A JF Imports está comprometida em proteger a privacidade e os dados pessoais de seus clientes 
+                  A JF D'LUXO está comprometida em proteger a privacidade e os dados pessoais de seus clientes 
                   e visitantes, em conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018).
                 </p>
                 <p>

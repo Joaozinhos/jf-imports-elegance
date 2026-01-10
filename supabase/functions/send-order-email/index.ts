@@ -10,7 +10,7 @@ const sendEmail = async (to: string[], subject: string, html: string) => {
       Authorization: `Bearer ${RESEND_API_KEY}`,
     },
     body: JSON.stringify({
-      from: "JF Imports <pedidos@resend.dev>",
+      from: "JF D'LUXO <pedidos@resend.dev>",
       to,
       subject,
       html,
@@ -100,7 +100,7 @@ const getEmailContent = (type: string, order: Order) => {
       <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff;">
         <!-- Header -->
         <div style="background-color: #1a1a1a; padding: 30px; text-align: center;">
-          <h1 style="color: #d4af37; margin: 0; font-size: 28px; letter-spacing: 2px;">JF IMPORTS</h1>
+          <h1 style="color: #d4af37; margin: 0; font-size: 28px; letter-spacing: 2px;">JF D'LUXO</h1>
           <p style="color: #888; margin: 10px 0 0; font-size: 12px; letter-spacing: 3px;">PERFUMES IMPORTADOS</p>
         </div>
         
@@ -154,10 +154,10 @@ const getEmailContent = (type: string, order: Order) => {
             Dúvidas? Entre em contato conosco
           </p>
           <p style="color: #d4af37; margin: 0; font-size: 14px;">
-            suporte@jfimports.com.br | (11) 99999-9999
+            suporte@jfdluxo.com.br | (11) 99999-9999
           </p>
           <p style="color: #666; margin: 20px 0 0; font-size: 12px;">
-            © ${new Date().getFullYear()} JF Imports. Todos os direitos reservados.
+            © ${new Date().getFullYear()} JF D'LUXO. Todos os direitos reservados.
           </p>
         </div>
       </div>
@@ -170,7 +170,7 @@ const getEmailContent = (type: string, order: Order) => {
 
   switch (type) {
     case "confirmation":
-      subject = `Pedido Confirmado #${order.order_number} - JF Imports`;
+      subject = `Pedido Confirmado #${order.order_number} - JF D'LUXO`;
       content = `
         <h2 style="color: #1a1a1a; margin: 0 0 20px;">Pedido Confirmado! ✓</h2>
         <p style="color: #666; line-height: 1.8; margin: 0 0 20px;">
@@ -187,7 +187,7 @@ const getEmailContent = (type: string, order: Order) => {
       break;
 
     case "payment_approved":
-      subject = `Pagamento Aprovado #${order.order_number} - JF Imports`;
+      subject = `Pagamento Aprovado #${order.order_number} - JF D'LUXO`;
       content = `
         <h2 style="color: #1a1a1a; margin: 0 0 20px;">Pagamento Aprovado! 💳</h2>
         <p style="color: #666; line-height: 1.8; margin: 0 0 20px;">
@@ -204,7 +204,7 @@ const getEmailContent = (type: string, order: Order) => {
       break;
 
     case "shipped":
-      subject = `Pedido Enviado #${order.order_number} - JF Imports`;
+      subject = `Pedido Enviado #${order.order_number} - JF D'LUXO`;
       content = `
         <h2 style="color: #1a1a1a; margin: 0 0 20px;">Seu Pedido Foi Enviado! 📦</h2>
         <p style="color: #666; line-height: 1.8; margin: 0 0 20px;">

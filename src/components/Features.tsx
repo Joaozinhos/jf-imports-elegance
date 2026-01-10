@@ -36,7 +36,7 @@ const Features = () => {
           className="text-center mb-16"
         >
           <p className="text-muted-foreground tracking-[0.3em] uppercase text-xs font-sans mb-6">
-            Por que escolher a JF Imports
+            Por que escolher a JF D'LUXO
           </p>
           <h2 className="text-3xl md:text-4xl font-display text-foreground">
             Nossos Diferenciais

@@ -25,7 +25,7 @@ const Chatbot = () => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 0,
-      text: "Olá! 👋 Sou o assistente virtual da JF Imports. Como posso ajudar você hoje?",
+      text: "Olá! 👋 Sou o assistente virtual da JF D'LUXO. Como posso ajudar você hoje?",
       isBot: true,
     },
   ]);
@@ -110,7 +110,7 @@ const Chatbot = () => {
             {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-divider bg-secondary/30">
               <div>
-                <h3 className="font-display text-foreground">JF Imports</h3>
+                <h3 className="font-display text-foreground">JF D'LUXO</h3>
                 <p className="text-xs text-muted-foreground">Assistente Virtual</p>
               </div>
               <button

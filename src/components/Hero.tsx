@@ -41,7 +41,7 @@ const Hero = () => {
             transition={{ delay: 0.3, duration: 0.8 }}
             className="text-4xl md:text-6xl lg:text-7xl font-display text-primary-foreground mb-6 leading-tight"
           >
-            JF Imports
+            JF D'LUXO
           </motion.h1>
 
           {/* Tagline */}
