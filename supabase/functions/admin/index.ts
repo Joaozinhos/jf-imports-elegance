@@ -179,14 +179,54 @@ serve(async (req) => {
       }
 
       case 'get_customers': {
-        const { data, error } = await supabase
-          .from('customer_stats')
-          .select('*')
-          .order('total_spent', { ascending: false });
+        // Aggregate customer stats directly from orders table (service role bypasses RLS)
+        const { data: orders, error } = await supabase
+          .from('orders')
+          .select('customer_email, customer_name, customer_phone, total_amount, created_at');
         
         if (error) throw error;
+        
+        // Aggregate in application code
+        const customerMap = new Map<string, {
+          customer_email: string;
+          customer_name: string;
+          customer_phone: string | null;
+          total_orders: number;
+          total_spent: number;
+          first_order_date: string;
+          last_order_date: string;
+        }>();
+        
+        orders?.forEach(order => {
+          const email = order.customer_email;
+          if (!customerMap.has(email)) {
+            customerMap.set(email, {
+              customer_email: email,
+              customer_name: order.customer_name,
+              customer_phone: order.customer_phone,
+              total_orders: 0,
+              total_spent: 0,
+              first_order_date: order.created_at,
+              last_order_date: order.created_at
+            });
+          }
+          const stats = customerMap.get(email)!;
+          stats.total_orders++;
+          stats.total_spent += Number(order.total_amount);
+          if (order.created_at > stats.last_order_date) {
+            stats.last_order_date = order.created_at;
+          }
+          if (order.created_at < stats.first_order_date) {
+            stats.first_order_date = order.created_at;
+          }
+        });
+        
+        // Sort by total spent descending
+        const customers = Array.from(customerMap.values())
+          .sort((a, b) => b.total_spent - a.total_spent);
+        
         return new Response(
-          JSON.stringify({ customers: data }),
+          JSON.stringify({ customers }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
