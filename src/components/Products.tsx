@@ -1,31 +1,20 @@
 import { motion } from "framer-motion";
 import ProductCard from "./ProductCard";
-
-const products = [
-  {
-    name: "Sauvage",
-    brand: "Dior",
-    price: "R$ 699,00",
-    description: "Eau de Parfum 100ml",
-    image: "https://images.unsplash.com/photo-1594035910387-fea47794261f?w=600&h=800&fit=crop",
-  },
-  {
-    name: "Bleu de Chanel",
-    brand: "Chanel",
-    price: "R$ 789,00",
-    description: "Eau de Parfum 100ml",
-    image: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=600&h=800&fit=crop",
-  },
-  {
-    name: "La Vie Est Belle",
-    brand: "Lancôme",
-    price: "R$ 549,00",
-    description: "Eau de Parfum 75ml",
-    image: "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?w=600&h=800&fit=crop",
-  },
-];
+import { useProducts } from "@/hooks/useProducts";
+import { Loader2 } from "lucide-react";
 
 const Products = () => {
+  const { data: products = [], isLoading } = useProducts();
+  const featuredProducts = products.slice(0, 3);
+
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+      minimumFractionDigits: 0,
+    }).format(value);
+  };
+
   return (
     <section className="py-24 md:py-32 bg-card">
       <div className="container mx-auto px-6">
@@ -47,15 +36,25 @@ const Products = () => {
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
-          {products.map((product, index) => (
-            <ProductCard
-              key={product.name}
-              {...product}
-              delay={index * 0.15}
-            />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12">
+            {featuredProducts.map((product, index) => (
+              <ProductCard
+                key={product.id}
+                name={product.name}
+                brand={product.brand}
+                price={formatPrice(product.price)}
+                description={`${product.concentration} ${product.size}`}
+                image={product.image}
+                delay={index * 0.15}
+              />
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );

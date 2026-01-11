@@ -5,7 +5,7 @@ import { useFavorites } from "@/hooks/useFavorites";
 import FavoriteButton from "@/components/FavoriteButton";
 import AddToCartButton from "@/components/AddToCartButton";
 import InstallmentDisplay from "@/components/InstallmentDisplay";
-import type { Product } from "@/data/products";
+import type { Product } from "@/hooks/useProducts";
 
 interface CatalogProductCardProps {
   product: Product;
@@ -56,6 +56,22 @@ const CatalogProductCard = ({ product, index }: CatalogProductCardProps) => {
           </span>
         </div>
 
+        {/* Stock Badge */}
+        {product.stock <= 5 && product.stock > 0 && (
+          <div className="absolute bottom-4 left-4">
+            <span className="bg-primary text-primary-foreground px-2 py-1 text-[10px] tracking-wider uppercase">
+              Últimas unidades
+            </span>
+          </div>
+        )}
+        {product.stock === 0 && (
+          <div className="absolute bottom-4 left-4">
+            <span className="bg-destructive text-destructive-foreground px-2 py-1 text-[10px] tracking-wider uppercase">
+              Esgotado
+            </span>
+          </div>
+        )}
+
         {/* Favorite Button */}
         <div className="absolute top-4 right-4">
           <FavoriteButton
@@ -98,7 +114,7 @@ const CatalogProductCard = ({ product, index }: CatalogProductCardProps) => {
 
         {/* CTAs */}
         <div className="flex items-center gap-2 pt-2">
-          <AddToCartButton productId={product.id} size="sm" />
+          <AddToCartButton productId={product.id} size="sm" disabled={product.stock === 0} />
           <Link to={`/produto/${product.id}`}>
             <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
               Ver
