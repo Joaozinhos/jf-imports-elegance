@@ -213,7 +213,7 @@ const ExchangePolicy = () => {
                 Nossa equipe está disponível para esclarecer qualquer dúvida sobre trocas e devoluções.
               </p>
               <a
-                href="https://wa.me/5511999999999?text=Olá! Preciso de ajuda com uma troca ou devolução."
+                href="https://wa.me/5516993029890?text=Olá! Preciso de ajuda com uma troca ou devolução."
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-background font-sans text-sm hover:bg-foreground/90 transition-colors"

@@ -315,7 +315,7 @@ const OrderTracking = () => {
                       variant="premium"
                       onClick={() => {
                         const message = `Olá! Gostaria de mais informações sobre meu pedido ${order.order_number}`;
-                        window.open(`https://wa.me/5511999999999?text=${encodeURIComponent(message)}`, '_blank');
+                        window.open(`https://wa.me/5516993029890?text=${encodeURIComponent(message)}`, '_blank');
                       }}
                     >
                       Falar no WhatsApp

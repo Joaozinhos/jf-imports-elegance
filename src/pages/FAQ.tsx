@@ -187,7 +187,7 @@ const FAQ = () => {
               Nossa equipe está pronta para ajudar você pelo WhatsApp.
             </p>
             <a
-              href="https://wa.me/5511999999999?text=Olá! Tenho uma dúvida sobre a JF D'LUXO."
+              href="https://wa.me/5516993029890?text=Olá! Tenho uma dúvida sobre a JF D'LUXO."
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-2 px-6 py-3 bg-foreground text-background font-sans text-sm hover:bg-foreground/90 transition-colors"
