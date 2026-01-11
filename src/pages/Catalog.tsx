@@ -7,10 +7,13 @@ import CatalogProductCard from "@/components/CatalogProductCard";
 import SearchBar from "@/components/SearchBar";
 import SortSelect, { SortOption } from "@/components/SortSelect";
 import { Button } from "@/components/ui/button";
-import { SlidersHorizontal, X } from "lucide-react";
-import { products, brands } from "@/data/products";
+import { SlidersHorizontal, X, Loader2 } from "lucide-react";
+import { useProducts, useBrands } from "@/hooks/useProducts";
 
 const Catalog = () => {
+  const { data: products = [], isLoading } = useProducts();
+  const brands = useBrands();
+  
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
@@ -47,7 +50,7 @@ const Catalog = () => {
           return 0;
       }
     });
-  }, [selectedBrands, selectedCategories, priceRange, searchQuery, sortBy]);
+  }, [products, selectedBrands, selectedCategories, priceRange, searchQuery, sortBy]);
 
   const clearAllFilters = () => {
     setSelectedBrands([]);
@@ -92,121 +95,127 @@ const Catalog = () => {
       {/* Main Content */}
       <section className="py-12 md:py-16">
         <div className="container mx-auto px-6">
-          <div className="flex flex-col lg:flex-row gap-8">
-            {/* Mobile Filter Toggle */}
-            <div className="lg:hidden flex items-center justify-between gap-4">
-              <Button
-                variant="premium-outline"
-                size="default"
-                onClick={() => setIsMobileFiltersOpen(true)}
-                className="flex items-center gap-2"
-              >
-                <SlidersHorizontal className="w-4 h-4" />
-                Filtros
-              </Button>
-              <SortSelect value={sortBy} onChange={setSortBy} />
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
             </div>
-
-            {/* Mobile Filters Overlay */}
-            <AnimatePresence>
-              {isMobileFiltersOpen && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="fixed inset-0 z-50 bg-background lg:hidden"
+          ) : (
+            <div className="flex flex-col lg:flex-row gap-8">
+              {/* Mobile Filter Toggle */}
+              <div className="lg:hidden flex items-center justify-between gap-4">
+                <Button
+                  variant="premium-outline"
+                  size="default"
+                  onClick={() => setIsMobileFiltersOpen(true)}
+                  className="flex items-center gap-2"
                 >
-                  <div className="flex items-center justify-between p-6 border-b border-divider">
-                    <h2 className="text-lg font-display">Filtros</h2>
-                    <button
-                      onClick={() => setIsMobileFiltersOpen(false)}
-                      className="p-2"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </div>
-                  <div className="p-6 overflow-y-auto h-[calc(100vh-80px)]">
-                    <CatalogFilters
-                      brands={brands}
-                      selectedBrands={selectedBrands}
-                      setSelectedBrands={setSelectedBrands}
-                      selectedCategories={selectedCategories}
-                      setSelectedCategories={setSelectedCategories}
-                      priceRange={priceRange}
-                      setPriceRange={setPriceRange}
-                      onClearAll={clearAllFilters}
-                      hasActiveFilters={hasActiveFilters}
-                    />
-                    <Button
-                      variant="premium"
-                      size="lg"
-                      className="w-full mt-8"
-                      onClick={() => setIsMobileFiltersOpen(false)}
-                    >
-                      Ver {filteredAndSortedProducts.length} Resultado{filteredAndSortedProducts.length !== 1 && "s"}
-                    </Button>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Desktop Filters Sidebar */}
-            <aside className="hidden lg:block w-64 flex-shrink-0">
-              <div className="sticky top-28">
-                <CatalogFilters
-                  brands={brands}
-                  selectedBrands={selectedBrands}
-                  setSelectedBrands={setSelectedBrands}
-                  selectedCategories={selectedCategories}
-                  setSelectedCategories={setSelectedCategories}
-                  priceRange={priceRange}
-                  setPriceRange={setPriceRange}
-                  onClearAll={clearAllFilters}
-                  hasActiveFilters={hasActiveFilters}
-                />
-              </div>
-            </aside>
-
-            {/* Products Grid */}
-            <div className="flex-1">
-              <div className="hidden lg:flex items-center justify-between mb-8">
-                <p className="text-muted-foreground text-sm">
-                  {filteredAndSortedProducts.length} produto{filteredAndSortedProducts.length !== 1 && "s"} encontrado{filteredAndSortedProducts.length !== 1 && "s"}
-                </p>
+                  <SlidersHorizontal className="w-4 h-4" />
+                  Filtros
+                </Button>
                 <SortSelect value={sortBy} onChange={setSortBy} />
               </div>
 
-              {filteredAndSortedProducts.length === 0 ? (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="text-center py-16"
-                >
-                  <p className="text-muted-foreground font-sans mb-4">
-                    Nenhum produto encontrado com os filtros selecionados.
-                  </p>
-                  <Button variant="premium-outline" onClick={clearAllFilters}>
-                    Limpar Filtros
-                  </Button>
-                </motion.div>
-              ) : (
-                <motion.div
-                  layout
-                  className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8"
-                >
-                  <AnimatePresence mode="popLayout">
-                    {filteredAndSortedProducts.map((product, index) => (
-                      <CatalogProductCard
-                        key={product.id}
-                        product={product}
-                        index={index}
+              {/* Mobile Filters Overlay */}
+              <AnimatePresence>
+                {isMobileFiltersOpen && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-50 bg-background lg:hidden"
+                  >
+                    <div className="flex items-center justify-between p-6 border-b border-divider">
+                      <h2 className="text-lg font-display">Filtros</h2>
+                      <button
+                        onClick={() => setIsMobileFiltersOpen(false)}
+                        className="p-2"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+                    <div className="p-6 overflow-y-auto h-[calc(100vh-80px)]">
+                      <CatalogFilters
+                        brands={brands}
+                        selectedBrands={selectedBrands}
+                        setSelectedBrands={setSelectedBrands}
+                        selectedCategories={selectedCategories}
+                        setSelectedCategories={setSelectedCategories}
+                        priceRange={priceRange}
+                        setPriceRange={setPriceRange}
+                        onClearAll={clearAllFilters}
+                        hasActiveFilters={hasActiveFilters}
                       />
-                    ))}
-                  </AnimatePresence>
-                </motion.div>
-              )}
+                      <Button
+                        variant="premium"
+                        size="lg"
+                        className="w-full mt-8"
+                        onClick={() => setIsMobileFiltersOpen(false)}
+                      >
+                        Ver {filteredAndSortedProducts.length} Resultado{filteredAndSortedProducts.length !== 1 && "s"}
+                      </Button>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Desktop Filters Sidebar */}
+              <aside className="hidden lg:block w-64 flex-shrink-0">
+                <div className="sticky top-28">
+                  <CatalogFilters
+                    brands={brands}
+                    selectedBrands={selectedBrands}
+                    setSelectedBrands={setSelectedBrands}
+                    selectedCategories={selectedCategories}
+                    setSelectedCategories={setSelectedCategories}
+                    priceRange={priceRange}
+                    setPriceRange={setPriceRange}
+                    onClearAll={clearAllFilters}
+                    hasActiveFilters={hasActiveFilters}
+                  />
+                </div>
+              </aside>
+
+              {/* Products Grid */}
+              <div className="flex-1">
+                <div className="hidden lg:flex items-center justify-between mb-8">
+                  <p className="text-muted-foreground text-sm">
+                    {filteredAndSortedProducts.length} produto{filteredAndSortedProducts.length !== 1 && "s"} encontrado{filteredAndSortedProducts.length !== 1 && "s"}
+                  </p>
+                  <SortSelect value={sortBy} onChange={setSortBy} />
+                </div>
+
+                {filteredAndSortedProducts.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="text-center py-16"
+                  >
+                    <p className="text-muted-foreground font-sans mb-4">
+                      Nenhum produto encontrado com os filtros selecionados.
+                    </p>
+                    <Button variant="premium-outline" onClick={clearAllFilters}>
+                      Limpar Filtros
+                    </Button>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8"
+                  >
+                    <AnimatePresence mode="popLayout">
+                      {filteredAndSortedProducts.map((product, index) => (
+                        <CatalogProductCard
+                          key={product.id}
+                          product={product}
+                          index={index}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </section>
 

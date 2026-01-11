@@ -1,11 +1,12 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { products } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import CatalogProductCard from "./CatalogProductCard";
 import { Button } from "@/components/ui/button";
-import { Sparkles, ArrowRight } from "lucide-react";
+import { Sparkles, ArrowRight, Loader2 } from "lucide-react";
 
 const NewArrivals = () => {
+  const { data: products = [], isLoading } = useProducts();
   const newArrivals = [...products].sort((a, b) => b.year - a.year).slice(0, 4);
 
   return (
@@ -29,23 +30,29 @@ const NewArrivals = () => {
           </h2>
         </motion.div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-          {newArrivals.map((product, index) => (
-            <motion.div
-              key={product.id}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: index * 0.1 }}
-              viewport={{ once: true }}
-              className="relative"
-            >
-              <div className="absolute top-3 left-3 z-10 bg-primary text-primary-foreground px-2 py-1 text-xs tracking-wider uppercase">
-                Novo
-              </div>
-              <CatalogProductCard product={product} index={index} />
-            </motion.div>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+            {newArrivals.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4, delay: index * 0.1 }}
+                viewport={{ once: true }}
+                className="relative"
+              >
+                <div className="absolute top-3 left-3 z-10 bg-primary text-primary-foreground px-2 py-1 text-xs tracking-wider uppercase">
+                  Novo
+                </div>
+                <CatalogProductCard product={product} index={index} />
+              </motion.div>
+            ))}
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0 }}

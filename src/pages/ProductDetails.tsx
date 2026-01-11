@@ -4,30 +4,43 @@ import { motion } from "framer-motion";
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { products } from "@/data/products";
+import { useProduct } from "@/hooks/useProducts";
 import { useFavorites } from "@/hooks/useFavorites";
 import { useCart } from "@/hooks/useCart";
 import FavoriteButton from "@/components/FavoriteButton";
 import ShippingCalculator from "@/components/ShippingCalculator";
 import AuthenticityBadge from "@/components/AuthenticityBadge";
 import InstallmentDisplay from "@/components/InstallmentDisplay";
-import { ChevronLeft, MessageCircle, ShoppingBag, Check } from "lucide-react";
+import { ChevronLeft, MessageCircle, ShoppingBag, Check, Loader2, AlertCircle } from "lucide-react";
 
 const WHATSAPP_NUMBER = "5516993029890";
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();
-  const product = products.find((p) => p.id === id);
+  const { product, isLoading, error } = useProduct(id || "");
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const { toggleFavorite, isFavorite } = useFavorites();
   const { addToCart, isInCart } = useCart();
   const inCart = isInCart(product?.id || "");
 
-  if (!product) {
+  if (isLoading) {
+    return (
+      <main className="min-h-screen bg-background">
+        <Header />
+        <div className="pt-32 pb-16 container mx-auto px-6 flex items-center justify-center">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+        </div>
+        <Footer />
+      </main>
+    );
+  }
+
+  if (error || !product) {
     return (
       <main className="min-h-screen bg-background">
         <Header />
         <div className="pt-32 pb-16 container mx-auto px-6 text-center">
+          <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h1 className="text-2xl font-display text-foreground mb-4">
             Produto não encontrado
           </h1>
@@ -59,6 +72,8 @@ const ProductDetails = () => {
     feminino: "Feminino",
     unissex: "Unissex",
   };
+
+  const images = product.images.length > 0 ? product.images : [product.image];
 
   return (
     <main className="min-h-screen bg-background">
@@ -92,32 +107,34 @@ const ProductDetails = () => {
               {/* Main Image */}
               <div className="aspect-[3/4] bg-secondary/50 overflow-hidden">
                 <img
-                  src={product.images[selectedImageIndex]}
+                  src={images[selectedImageIndex]}
                   alt={`${product.brand} ${product.name}`}
                   className="w-full h-full object-cover"
                 />
               </div>
 
               {/* Thumbnails */}
-              <div className="flex gap-3">
-                {product.images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setSelectedImageIndex(index)}
-                    className={`w-20 h-24 overflow-hidden border-2 transition-colors ${
-                      index === selectedImageIndex
-                        ? "border-foreground"
-                        : "border-transparent hover:border-muted"
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`${product.name} - Imagem ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
+              {images.length > 1 && (
+                <div className="flex gap-3">
+                  {images.map((image, index) => (
+                    <button
+                      key={index}
+                      onClick={() => setSelectedImageIndex(index)}
+                      className={`w-20 h-24 overflow-hidden border-2 transition-colors ${
+                        index === selectedImageIndex
+                          ? "border-foreground"
+                          : "border-transparent hover:border-muted"
+                      }`}
+                    >
+                      <img
+                        src={image}
+                        alt={`${product.name} - Imagem ${index + 1}`}
+                        className="w-full h-full object-cover"
+                      />
+                    </button>
+                  ))}
+                </div>
+              )}
             </motion.div>
 
             {/* Product Info */}
@@ -157,6 +174,18 @@ const ProductDetails = () => {
               {/* Installments */}
               <InstallmentDisplay price={product.price} className="mb-6" />
 
+              {/* Stock indicator */}
+              {product.stock <= 5 && product.stock > 0 && (
+                <p className="text-sm text-primary mb-4">
+                  Apenas {product.stock} unidades em estoque!
+                </p>
+              )}
+              {product.stock === 0 && (
+                <p className="text-sm text-destructive mb-4">
+                  Produto esgotado
+                </p>
+              )}
+
               {/* Description */}
               <p className="text-muted-foreground font-sans leading-relaxed mb-8">
                 {product.description}
@@ -176,67 +205,77 @@ const ProductDetails = () => {
                   </p>
                   <p className="text-foreground font-sans">{product.concentration}</p>
                 </div>
-                <div>
-                  <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
-                    Ano de Lançamento
-                  </p>
-                  <p className="text-foreground font-sans">{product.year}</p>
-                </div>
+                {product.year > 0 && (
+                  <div>
+                    <p className="text-muted-foreground text-xs uppercase tracking-wider mb-1">
+                      Ano de Lançamento
+                    </p>
+                    <p className="text-foreground font-sans">{product.year}</p>
+                  </div>
+                )}
               </div>
 
               {/* Olfactory Notes */}
-              <div className="mb-10">
-                <h2 className="text-lg font-display text-foreground mb-6">
-                  Notas Olfativas
-                </h2>
-                <div className="space-y-4">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                      Notas de Topo
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {product.notes.top.map((note) => (
-                        <span
-                          key={note}
-                          className="px-3 py-1.5 bg-secondary/50 text-foreground text-sm font-sans"
-                        >
-                          {note}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                      Notas de Coração
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {product.notes.heart.map((note) => (
-                        <span
-                          key={note}
-                          className="px-3 py-1.5 bg-secondary/50 text-foreground text-sm font-sans"
-                        >
-                          {note}
-                        </span>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                      Notas de Base
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {product.notes.base.map((note) => (
-                        <span
-                          key={note}
-                          className="px-3 py-1.5 bg-secondary/50 text-foreground text-sm font-sans"
-                        >
-                          {note}
-                        </span>
-                      ))}
-                    </div>
+              {product.notes && (product.notes.top?.length > 0 || product.notes.heart?.length > 0 || product.notes.base?.length > 0) && (
+                <div className="mb-10">
+                  <h2 className="text-lg font-display text-foreground mb-6">
+                    Notas Olfativas
+                  </h2>
+                  <div className="space-y-4">
+                    {product.notes.top?.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                          Notas de Topo
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {product.notes.top.map((note) => (
+                            <span
+                              key={note}
+                              className="px-3 py-1.5 bg-secondary/50 text-foreground text-sm font-sans"
+                            >
+                              {note}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {product.notes.heart?.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                          Notas de Coração
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {product.notes.heart.map((note) => (
+                            <span
+                              key={note}
+                              className="px-3 py-1.5 bg-secondary/50 text-foreground text-sm font-sans"
+                            >
+                              {note}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {product.notes.base?.length > 0 && (
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground mb-2">
+                          Notas de Base
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {product.notes.base.map((note) => (
+                            <span
+                              key={note}
+                              className="px-3 py-1.5 bg-secondary/50 text-foreground text-sm font-sans"
+                            >
+                              {note}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
-              </div>
+              )}
 
               {/* Authenticity Badge */}
               <AuthenticityBadge variant="full" />
@@ -247,6 +286,7 @@ const ProductDetails = () => {
                   variant={inCart ? "premium" : "premium-outline"}
                   size="lg"
                   onClick={() => addToCart(product.id)}
+                  disabled={product.stock === 0}
                   className="w-full flex items-center justify-center gap-3"
                 >
                   {inCart ? <Check className="w-5 h-5" /> : <ShoppingBag className="w-5 h-5" />}

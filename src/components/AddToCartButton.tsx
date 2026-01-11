@@ -10,6 +10,7 @@ interface AddToCartButtonProps {
   variant?: "premium" | "premium-outline";
   className?: string;
   showIcon?: boolean;
+  disabled?: boolean;
 }
 
 const AddToCartButton = ({
@@ -18,6 +19,7 @@ const AddToCartButton = ({
   variant = "premium-outline",
   className,
   showIcon = true,
+  disabled = false,
 }: AddToCartButtonProps) => {
   const { addToCart, isInCart } = useCart();
 
@@ -34,6 +36,7 @@ const AddToCartButton = ({
       variant={inCart ? "premium" : variant}
       size={size}
       onClick={handleClick}
+      disabled={disabled}
       className={cn("gap-2", className)}
     >
       {showIcon && (

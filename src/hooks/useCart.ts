@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
-import { products, Product } from "@/data/products";
+import { useQueryClient } from "@tanstack/react-query";
+import type { Product } from "@/hooks/useProducts";
 
-const CART_KEY = "jf-imports-cart";
+const CART_KEY = "jf-dluxo-cart";
 
 export interface CartItem {
   productId: string;
@@ -11,6 +12,8 @@ export interface CartItem {
 
 export const useCart = () => {
   const [items, setItems] = useState<CartItem[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const stored = localStorage.getItem(CART_KEY);
@@ -22,6 +25,26 @@ export const useCart = () => {
       }
     }
   }, []);
+
+  // Get products from react-query cache
+  useEffect(() => {
+    const cachedProducts = queryClient.getQueryData<Product[]>(["products"]);
+    if (cachedProducts) {
+      setProducts(cachedProducts);
+    }
+    
+    // Subscribe to changes
+    const unsubscribe = queryClient.getQueryCache().subscribe((event) => {
+      if (event?.query?.queryKey?.[0] === "products") {
+        const data = queryClient.getQueryData<Product[]>(["products"]);
+        if (data) {
+          setProducts(data);
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, [queryClient]);
 
   const saveItems = useCallback((newItems: CartItem[]) => {
     localStorage.setItem(CART_KEY, JSON.stringify(newItems));
@@ -52,7 +75,7 @@ export const useCart = () => {
         },
       });
     },
-    [items, saveItems]
+    [items, saveItems, products]
   );
 
   const removeFromCart = useCallback(
@@ -63,7 +86,7 @@ export const useCart = () => {
       const product = products.find((p) => p.id === productId);
       toast.info(`${product?.name || "Produto"} removido do carrinho`);
     },
-    [items, saveItems]
+    [items, saveItems, products]
   );
 
   const updateQuantity = useCallback(
@@ -95,7 +118,7 @@ export const useCart = () => {
         return null;
       })
       .filter((item): item is Product & { quantity: number } => item !== null);
-  }, [items]);
+  }, [items, products]);
 
   const getTotal = useCallback(() => {
     return getCartProducts().reduce(

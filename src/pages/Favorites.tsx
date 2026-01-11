@@ -4,12 +4,13 @@ import Header from "@/components/Header";
 import Footer from "@/components/Footer";
 import { Button } from "@/components/ui/button";
 import { useFavorites } from "@/hooks/useFavorites";
-import { products } from "@/data/products";
+import { useProducts } from "@/hooks/useProducts";
 import FavoriteButton from "@/components/FavoriteButton";
-import { Heart, ShoppingBag } from "lucide-react";
+import { Heart, ShoppingBag, Loader2 } from "lucide-react";
 
 const Favorites = () => {
   const { favorites, toggleFavorite, isFavorite, clearFavorites } = useFavorites();
+  const { data: products = [], isLoading } = useProducts();
 
   const favoriteProducts = products.filter((p) => favorites.includes(p.id));
 
@@ -59,7 +60,11 @@ const Favorites = () => {
       {/* Content */}
       <section className="py-12">
         <div className="container mx-auto px-6">
-          {favoriteProducts.length === 0 ? (
+          {isLoading ? (
+            <div className="flex items-center justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-primary" />
+            </div>
+          ) : favoriteProducts.length === 0 ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
