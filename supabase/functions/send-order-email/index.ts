@@ -155,7 +155,7 @@ const getEmailContent = (type: string, order: Order) => {
             Dúvidas? Entre em contato conosco
           </p>
           <p style="color: #d4af37; margin: 0; font-size: 14px;">
-            suporte@jfdluxo.com.br | (11) 99999-9999
+            suporte@jfdluxo.com.br | (16) 99302-9890
           </p>
           <p style="color: #666; margin: 20px 0 0; font-size: 12px;">
             © ${new Date().getFullYear()} JF D'LUXO. Todos os direitos reservados.

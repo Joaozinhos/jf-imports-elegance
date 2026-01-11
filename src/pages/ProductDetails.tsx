@@ -13,7 +13,7 @@ import AuthenticityBadge from "@/components/AuthenticityBadge";
 import InstallmentDisplay from "@/components/InstallmentDisplay";
 import { ChevronLeft, MessageCircle, ShoppingBag, Check } from "lucide-react";
 
-const WHATSAPP_NUMBER = "5511999999999"; // Substitua pelo número real
+const WHATSAPP_NUMBER = "5516993029890";
 
 const ProductDetails = () => {
   const { id } = useParams<{ id: string }>();

@@ -10,7 +10,7 @@ interface Message {
   isBot: boolean;
 }
 
-const WHATSAPP_NUMBER = "5511999999999";
+const WHATSAPP_NUMBER = "5516993029890";
 
 const quickReplies = [
   { id: 1, text: "Horário de atendimento", response: "Nosso atendimento funciona de segunda a sexta, das 9h às 18h, e aos sábados das 9h às 13h. Aos domingos e feriados estamos fechados." },
