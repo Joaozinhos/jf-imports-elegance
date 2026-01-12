@@ -5,3 +5,12 @@ verify_jwt = false
 
 [functions.create-payment]
 verify_jwt = false
+
+[functions.manage-loyalty-points]
+verify_jwt = false
+
+[functions.admin]
+verify_jwt = false
+
+[functions.send-order-email]
+verify_jwt = false
