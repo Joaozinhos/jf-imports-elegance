@@ -95,7 +95,7 @@ type TabType = "orders" | "coupons" | "customers" | "products";
 
 const AdminDashboard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [adminSecret, setAdminSecret] = useState("");
+  const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [password, setPassword] = useState("");
   const [activeTab, setActiveTab] = useState<TabType>("orders");
   const [orders, setOrders] = useState<Order[]>([]);
@@ -118,12 +118,24 @@ const AdminDashboard = () => {
   });
 
   const adminCall = async (action: string, data?: any) => {
+    if (!sessionToken) throw new Error("Não autenticado");
+    
     const { data: result, error } = await supabase.functions.invoke("admin", {
       body: { action, data },
-      headers: { "x-admin-secret": adminSecret },
+      headers: { "Authorization": `Bearer ${sessionToken}` },
     });
+    
     if (error) throw error;
-    if (result?.error) throw new Error(result.error);
+    if (result?.error) {
+      // Handle session expiration
+      if (result.error.includes("expirada") || result.error === "Unauthorized") {
+        setSessionToken(null);
+        setIsAuthenticated(false);
+        toast.error("Sessão expirada. Faça login novamente.");
+        throw new Error(result.error);
+      }
+      throw new Error(result.error);
+    }
     return result;
   };
 
@@ -137,14 +149,26 @@ const AdminDashboard = () => {
         toast.error(data?.error || "Erro ao fazer login");
         return;
       }
-      setAdminSecret(password);
-      setIsAuthenticated(true);
-      toast.success("Login realizado com sucesso!");
+      if (data?.token) {
+        setSessionToken(data.token);
+        setIsAuthenticated(true);
+        setPassword(""); // Clear password from state immediately
+        toast.success("Login realizado com sucesso!");
+      } else {
+        toast.error("Erro ao obter token de sessão");
+      }
     } catch (err) {
       toast.error("Erro ao fazer login");
     } finally {
       setLoading(false);
     }
+  };
+  
+  const handleLogout = () => {
+    setSessionToken(null);
+    setIsAuthenticated(false);
+    setPassword("");
+    toast.success("Logout realizado com sucesso!");
   };
 
   const fetchStats = async () => {
@@ -366,7 +390,7 @@ const AdminDashboard = () => {
                 <p className="text-sm text-muted-foreground">JF D'LUXO</p>
               </div>
             </div>
-            <Button variant="outline" size="sm" onClick={() => { setIsAuthenticated(false); setAdminSecret(""); setPassword(""); }}>
+            <Button variant="outline" size="sm" onClick={handleLogout}>
               Sair
             </Button>
           </div>

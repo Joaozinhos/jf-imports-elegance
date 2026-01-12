@@ -1,9 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { create, verify } from "https://deno.land/x/djwt@v3.0.2/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-admin-secret',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
 interface AdminRequest {
@@ -12,6 +13,62 @@ interface AdminRequest {
           'create_product' | 'update_product' | 'delete_product' | 'toggle_product' | 'resend_order_email';
   password?: string;
   data?: any;
+}
+
+// Generate crypto key for JWT signing
+async function getJwtKey(): Promise<CryptoKey> {
+  const secret = Deno.env.get('ADMIN_SECRET') || '';
+  const encoder = new TextEncoder();
+  const keyData = encoder.encode(secret.padEnd(32, '0').slice(0, 32));
+  
+  return await crypto.subtle.importKey(
+    "raw",
+    keyData,
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"]
+  );
+}
+
+// Create JWT token with 8-hour expiration
+async function createAdminToken(): Promise<string> {
+  const key = await getJwtKey();
+  const now = Math.floor(Date.now() / 1000);
+  
+  const jwt = await create(
+    { alg: "HS256", typ: "JWT" },
+    {
+      role: "admin",
+      iat: now,
+      exp: now + (8 * 60 * 60), // 8 hours
+    },
+    key
+  );
+  
+  return jwt;
+}
+
+// Verify JWT token
+async function verifyAdminToken(token: string): Promise<boolean> {
+  try {
+    const key = await getJwtKey();
+    const payload = await verify(token, key);
+    
+    // Check if token has admin role and is not expired
+    if (payload.role !== "admin") {
+      return false;
+    }
+    
+    const now = Math.floor(Date.now() / 1000);
+    if (typeof payload.exp === "number" && payload.exp < now) {
+      return false;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    return false;
+  }
 }
 
 serve(async (req) => {
@@ -31,13 +88,13 @@ serve(async (req) => {
 
   try {
     const body: AdminRequest = await req.json();
-    const providedSecret = req.headers.get('x-admin-secret');
 
-    // Login action - validate password and return success
+    // Login action - validate password and return JWT token
     if (body.action === 'login') {
       if (body.password === adminSecret) {
+        const token = await createAdminToken();
         return new Response(
-          JSON.stringify({ success: true }),
+          JSON.stringify({ success: true, token }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       } else {
@@ -48,10 +105,21 @@ serve(async (req) => {
       }
     }
 
-    // All other actions require valid admin secret header
-    if (providedSecret !== adminSecret) {
+    // All other actions require valid JWT token in Authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.substring(7);
+    const isValidToken = await verifyAdminToken(token);
+    
+    if (!isValidToken) {
+      return new Response(
+        JSON.stringify({ error: 'Sessão inválida ou expirada. Faça login novamente.' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
