@@ -55,9 +55,9 @@ export default {
         },
         divider: "hsl(var(--divider))",
         neon: {
-          purple: "hsl(var(--neon-purple))",
-          glow: "hsl(var(--neon-purple-glow))",
-          soft: "hsl(var(--neon-purple-soft))",
+          gold: "hsl(var(--neon-gold))",
+          glow: "hsl(var(--neon-gold-glow))",
+          soft: "hsl(var(--neon-gold-soft))",
         },
       },
       fontFamily: {
