@@ -15,6 +15,50 @@ interface AdminRequest {
   data?: any;
 }
 
+// Rate limiting for login attempts
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
+const MAX_LOGIN_ATTEMPTS = 5;
+const RATE_LIMIT_WINDOW_MS = 15 * 60 * 1000; // 15 minutes
+
+function checkRateLimit(ip: string): { allowed: boolean; remainingAttempts: number; resetInSeconds?: number } {
+  const now = Date.now();
+  const attempts = loginAttempts.get(ip);
+  
+  // Clean up old entries
+  if (attempts && now > attempts.resetAt) {
+    loginAttempts.delete(ip);
+  }
+  
+  const currentAttempts = loginAttempts.get(ip);
+  
+  if (!currentAttempts) {
+    return { allowed: true, remainingAttempts: MAX_LOGIN_ATTEMPTS };
+  }
+  
+  if (currentAttempts.count >= MAX_LOGIN_ATTEMPTS) {
+    const resetInSeconds = Math.ceil((currentAttempts.resetAt - now) / 1000);
+    return { allowed: false, remainingAttempts: 0, resetInSeconds };
+  }
+  
+  return { allowed: true, remainingAttempts: MAX_LOGIN_ATTEMPTS - currentAttempts.count };
+}
+
+function recordLoginAttempt(ip: string, success: boolean): void {
+  if (success) {
+    loginAttempts.delete(ip);
+    return;
+  }
+  
+  const now = Date.now();
+  const attempts = loginAttempts.get(ip);
+  
+  if (attempts && now <= attempts.resetAt) {
+    attempts.count++;
+  } else {
+    loginAttempts.set(ip, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+  }
+}
+
 // Generate crypto key for JWT signing
 async function getJwtKey(): Promise<CryptoKey> {
   const secret = Deno.env.get('ADMIN_SECRET') || '';
@@ -81,25 +125,45 @@ serve(async (req) => {
   if (!adminSecret) {
     console.error('ADMIN_SECRET not configured');
     return new Response(
-      JSON.stringify({ error: 'Admin not configured' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'Serviço temporariamente indisponível' }),
+      { status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
   try {
     const body: AdminRequest = await req.json();
 
-    // Login action - validate password and return JWT token
+    // Login action - validate password and return JWT token with rate limiting
     if (body.action === 'login') {
+      const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown';
+      
+      // Check rate limit
+      const rateLimitStatus = checkRateLimit(ip);
+      if (!rateLimitStatus.allowed) {
+        console.warn(`Rate limit exceeded for IP: ${ip}`);
+        return new Response(
+          JSON.stringify({ 
+            error: `Muitas tentativas de login. Tente novamente em ${Math.ceil(rateLimitStatus.resetInSeconds! / 60)} minutos.` 
+          }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       if (body.password === adminSecret) {
+        recordLoginAttempt(ip, true);
         const token = await createAdminToken();
         return new Response(
           JSON.stringify({ success: true, token }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       } else {
+        recordLoginAttempt(ip, false);
+        const remaining = MAX_LOGIN_ATTEMPTS - (loginAttempts.get(ip)?.count || 0);
         return new Response(
-          JSON.stringify({ error: 'Senha incorreta' }),
+          JSON.stringify({ 
+            error: 'Senha incorreta',
+            remainingAttempts: remaining > 0 ? remaining : 0
+          }),
           { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }

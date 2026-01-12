@@ -79,55 +79,38 @@ export const useLoyaltyPoints = () => {
     }
   }, []);
 
+  // Use edge function for adding points (service role access)
   const addPoints = useCallback(async (
     email: string,
     orderTotal: number,
     orderId?: string
   ) => {
-    const earnedPoints = Math.floor(orderTotal * POINTS_PER_REAL);
-    if (earnedPoints <= 0) return false;
+    if (!orderId) {
+      console.error("Order ID is required to add points");
+      return false;
+    }
 
     try {
-      // Check if customer already has points record
-      const { data: existing } = await supabase
-        .from("loyalty_points")
-        .select("*")
-        .eq("customer_email", email.toLowerCase())
-        .single();
-
-      if (existing) {
-        // Update existing record
-        const { error: updateError } = await supabase
-          .from("loyalty_points")
-          .update({
-            points: existing.points + earnedPoints,
-            total_earned: existing.total_earned + earnedPoints,
-          })
-          .eq("customer_email", email.toLowerCase());
-
-        if (updateError) throw updateError;
-      } else {
-        // Create new record
-        const { error: insertError } = await supabase
-          .from("loyalty_points")
-          .insert({
-            customer_email: email.toLowerCase(),
-            points: earnedPoints,
-            total_earned: earnedPoints,
-          });
-
-        if (insertError) throw insertError;
-      }
-
-      // Record transaction
-      await supabase.from("loyalty_transactions").insert({
-        customer_email: email.toLowerCase(),
-        points: earnedPoints,
-        type: "earned",
-        description: `Pontos ganhos na compra`,
-        order_id: orderId,
+      const { data, error } = await supabase.functions.invoke('manage-loyalty-points', {
+        body: {
+          action: 'add_points',
+          email,
+          order_id: orderId,
+          order_total: orderTotal,
+        },
       });
 
+      if (error) {
+        console.error("Error adding points:", error);
+        return false;
+      }
+
+      if (!data?.success) {
+        console.error("Failed to add points:", data?.error);
+        return false;
+      }
+
+      console.log(`Added ${data.points_earned} points for ${email}`);
       return true;
     } catch (err) {
       console.error("Error adding points:", err);
@@ -135,6 +118,7 @@ export const useLoyaltyPoints = () => {
     }
   }, []);
 
+  // Use edge function for redeeming points (service role access)
   const redeemPoints = useCallback(async (
     email: string,
     pointsToRedeem: number
@@ -145,52 +129,42 @@ export const useLoyaltyPoints = () => {
     }
 
     try {
-      const { data: existing } = await supabase
-        .from("loyalty_points")
-        .select("*")
-        .eq("customer_email", email.toLowerCase())
-        .single();
+      const { data, error } = await supabase.functions.invoke('manage-loyalty-points', {
+        body: {
+          action: 'redeem_points',
+          email,
+          points_to_redeem: pointsToRedeem,
+        },
+      });
 
-      if (!existing || existing.points < pointsToRedeem) {
-        toast.error("Pontos insuficientes");
+      if (error) {
+        console.error("Error redeeming points:", error);
+        toast.error("Erro ao resgatar pontos");
         return { success: false, discount: 0 };
       }
 
-      const discount = pointsToRedeem * POINTS_VALUE;
+      if (!data?.success) {
+        toast.error(data?.error || "Erro ao resgatar pontos");
+        return { success: false, discount: 0 };
+      }
 
-      // Update points
-      const { error: updateError } = await supabase
-        .from("loyalty_points")
-        .update({
-          points: existing.points - pointsToRedeem,
-          total_redeemed: existing.total_redeemed + pointsToRedeem,
-        })
-        .eq("customer_email", email.toLowerCase());
+      // Update local state
+      if (points) {
+        setPoints({
+          ...points,
+          points: points.points - pointsToRedeem,
+          total_redeemed: points.total_redeemed + pointsToRedeem,
+        });
+      }
 
-      if (updateError) throw updateError;
-
-      // Record transaction
-      await supabase.from("loyalty_transactions").insert({
-        customer_email: email.toLowerCase(),
-        points: -pointsToRedeem,
-        type: "redeemed",
-        description: `Resgate de ${pointsToRedeem} pontos = R$ ${discount.toFixed(2)} de desconto`,
-      });
-
-      setPoints({
-        ...existing,
-        points: existing.points - pointsToRedeem,
-        total_redeemed: existing.total_redeemed + pointsToRedeem,
-      });
-
-      toast.success(`Você resgatou R$ ${discount.toFixed(2)} de desconto!`);
-      return { success: true, discount };
+      toast.success(`Você resgatou R$ ${data.discount.toFixed(2)} de desconto!`);
+      return { success: true, discount: data.discount };
     } catch (err) {
       console.error("Error redeeming points:", err);
       toast.error("Erro ao resgatar pontos");
       return { success: false, discount: 0 };
     }
-  }, []);
+  }, [points]);
 
   const calculatePointsValue = (pointsAmount: number) => {
     return pointsAmount * POINTS_VALUE;
