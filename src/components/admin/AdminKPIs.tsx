@@ -50,8 +50,8 @@ const AdminKPIs = ({ stats, activeCoupons, formatPrice }: AdminKPIsProps) => {
       icon: DollarSign,
       value: formatPrice(stats.totalRevenue),
       label: "Receita Total",
-      color: "text-purple-neon",
-      bgColor: "bg-purple-neon/10",
+      color: "text-primary",
+      bgColor: "bg-primary/10",
       isString: true,
     },
     {

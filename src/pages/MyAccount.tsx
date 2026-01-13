@@ -120,7 +120,7 @@ const MyAccount = () => {
   // Calculate tier based on total points earned
   const getTier = () => {
     const totalEarned = points?.total_earned || 0;
-    if (totalEarned >= 5000) return { name: 'Diamante', color: 'text-purple-500', icon: '💎' };
+    if (totalEarned >= 5000) return { name: 'Diamante', color: 'text-primary', icon: '💎' };
     if (totalEarned >= 2000) return { name: 'Ouro', color: 'text-yellow-500', icon: '🥇' };
     if (totalEarned >= 500) return { name: 'Prata', color: 'text-gray-400', icon: '🥈' };
     return { name: 'Bronze', color: 'text-orange-400', icon: '🥉' };
