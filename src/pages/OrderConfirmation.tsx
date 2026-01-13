@@ -240,7 +240,7 @@ const OrderConfirmation = () => {
             transition={{ delay: 0.5 }}
             className="max-w-2xl mx-auto mt-8 flex flex-col sm:flex-row gap-4 justify-center"
           >
-            <Link to={`/rastreio?pedido=${order.order_number}`}>
+            <Link to="/rastreamento">
               <Button variant="outline" className="gap-2 w-full sm:w-auto">
                 <Package className="w-4 h-4" />
                 Acompanhar Pedido

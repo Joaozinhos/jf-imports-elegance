@@ -53,7 +53,7 @@ const AdminCustomersTab = ({
   );
 
   const getCustomerTier = (totalSpent: number) => {
-    if (totalSpent >= 5000) return { label: "VIP", color: "text-purple-neon", bg: "bg-purple-neon/10" };
+    if (totalSpent >= 5000) return { label: "VIP", color: "text-primary", bg: "bg-primary/10" };
     if (totalSpent >= 2000) return { label: "Gold", color: "text-yellow-500", bg: "bg-yellow-500/10" };
     if (totalSpent >= 500) return { label: "Silver", color: "text-gray-400", bg: "bg-gray-400/10" };
     return { label: "Bronze", color: "text-orange-500", bg: "bg-orange-500/10" };

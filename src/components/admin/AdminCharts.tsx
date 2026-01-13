@@ -79,10 +79,10 @@ const AdminCharts = ({ data, formatPrice }: AdminChartsProps) => {
               type="monotone"
               dataKey="revenue"
               name="Receita"
-              stroke="hsl(var(--purple-neon))"
+              stroke="hsl(var(--primary))"
               strokeWidth={2}
-              dot={{ fill: "hsl(var(--purple-neon))", strokeWidth: 2, r: 4 }}
-              activeDot={{ r: 6, fill: "hsl(var(--purple-neon))" }}
+              dot={{ fill: "hsl(var(--primary))", strokeWidth: 2, r: 4 }}
+              activeDot={{ r: 6, fill: "hsl(var(--primary))" }}
             />
           </LineChart>
         </ResponsiveContainer>
