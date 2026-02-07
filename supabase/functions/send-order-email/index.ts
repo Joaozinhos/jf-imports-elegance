@@ -1,28 +1,21 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
+import { Resend } from "npm:resend@2.0.0";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
 const sendEmail = async (to: string[], subject: string, html: string) => {
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({
-      from: "JF D'LUXO <pedidos@resend.dev>",
-      to,
-      subject,
-      html,
-    }),
+  const { data, error } = await resend.emails.send({
+    from: "JF D'LUXO <pedidos@jfdluxo.com.br>",
+    to,
+    subject,
+    html,
   });
   
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Resend API error: ${error}`);
+  if (error) {
+    throw new Error(`Resend API error: ${JSON.stringify(error)}`);
   }
   
-  return response.json();
+  return data;
 };
 
 
