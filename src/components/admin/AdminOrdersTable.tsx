@@ -29,6 +29,8 @@ import {
   XCircle,
   Truck,
   Package,
+  Trash2,
+  MapPin,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -38,6 +40,7 @@ interface Order {
   customer_name: string;
   customer_email: string;
   customer_phone: string | null;
+  customer_address: string | null;
   total_amount: number;
   shipping_amount: number;
   status: string;
@@ -52,6 +55,7 @@ interface AdminOrdersTableProps {
   loading: boolean;
   onRefresh: () => void;
   onUpdateOrder: (id: string, updates: any) => Promise<void>;
+  onDeleteOrder: (id: string) => Promise<void>;
   onResendEmail: (orderId: string, type: string) => Promise<void>;
   formatPrice: (value: number) => string;
   formatDate: (date: string) => string;
@@ -71,6 +75,7 @@ const AdminOrdersTable = ({
   loading,
   onRefresh,
   onUpdateOrder,
+  onDeleteOrder,
   onResendEmail,
   formatPrice,
   formatDate,
@@ -343,6 +348,19 @@ const AdminOrdersTable = ({
                     >
                       <Mail className="w-4 h-4" />
                     </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        if (confirm(`Deseja realmente excluir o pedido ${order.order_number}?`)) {
+                          onDeleteOrder(order.id);
+                        }
+                      }}
+                      title="Excluir Pedido"
+                      className="text-red-500 hover:text-red-600"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </TableCell>
               </TableRow>
@@ -441,6 +459,15 @@ const AdminOrdersTable = ({
                   </div>
                 </div>
               </div>
+
+              {selectedOrder.customer_address && (
+                <div>
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> Endereço de Entrega
+                  </p>
+                  <p className="font-medium mt-1">{selectedOrder.customer_address}</p>
+                </div>
+              )}
 
               {selectedOrder.tracking_code && (
                 <div>

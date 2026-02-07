@@ -9,7 +9,7 @@ const corsHeaders = {
 
 interface AdminRequest {
   action: 'login' | 'get_orders' | 'get_coupons' | 'get_customers' | 'get_products' | 'get_stats' |
-          'update_order' | 'create_coupon' | 'update_coupon' | 'delete_coupon' | 'toggle_coupon' |
+          'update_order' | 'delete_order' | 'create_coupon' | 'update_coupon' | 'delete_coupon' | 'toggle_coupon' |
           'create_product' | 'update_product' | 'delete_product' | 'toggle_product' | 'resend_order_email';
   password?: string;
   data?: any;
@@ -381,6 +381,27 @@ serve(async (req) => {
         const { error } = await supabase
           .from('orders')
           .update({ ...updates, updated_at: new Date().toISOString() })
+          .eq('id', id);
+        
+        if (error) throw error;
+        return new Response(
+          JSON.stringify({ success: true }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      case 'delete_order': {
+        const { id } = body.data;
+        
+        // First delete related loyalty transactions
+        await supabase
+          .from('loyalty_transactions')
+          .delete()
+          .eq('order_id', id);
+        
+        const { error } = await supabase
+          .from('orders')
+          .delete()
           .eq('id', id);
         
         if (error) throw error;
