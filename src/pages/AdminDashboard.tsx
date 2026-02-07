@@ -26,6 +26,7 @@ interface Order {
   customer_name: string;
   customer_email: string;
   customer_phone: string | null;
+  customer_address: string | null;
   total_amount: number;
   shipping_amount: number;
   status: string;
@@ -253,6 +254,17 @@ const AdminDashboard = () => {
     await adminCall("resend_order_email", { orderId, type });
   };
 
+  const handleDeleteOrder = async (id: string) => {
+    try {
+      await adminCall("delete_order", { id });
+      toast.success("Pedido excluído!");
+      fetchOrders();
+      fetchStats();
+    } catch (err) {
+      toast.error("Erro ao excluir pedido");
+    }
+  };
+
   // Coupon handlers
   const handleCreateCoupon = async () => {
     const couponData = {
@@ -418,7 +430,7 @@ const AdminDashboard = () => {
 
         {activeTab === "orders" && (
           <AdminOrdersTable orders={orders} loading={loading} onRefresh={fetchOrders}
-            onUpdateOrder={handleUpdateOrder} onResendEmail={handleResendEmail}
+            onUpdateOrder={handleUpdateOrder} onDeleteOrder={handleDeleteOrder} onResendEmail={handleResendEmail}
             formatPrice={formatPrice} formatDate={formatDate} />
         )}
 
