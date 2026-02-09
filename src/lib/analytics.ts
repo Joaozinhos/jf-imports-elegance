@@ -1,5 +1,5 @@
 // Google Analytics 4 integration
-export const GA_TRACKING_ID = 'G-XXXXXXXXXX'; // Replace with your actual GA4 ID
+export const GA_TRACKING_ID = 'G-3KEL8Z38S9';
 
 declare global {
   interface Window {
@@ -32,7 +32,7 @@ export const initGA = () => {
 };
 
 // Facebook Pixel integration
-export const FB_PIXEL_ID = '1234567890123456'; // Replace with your actual Pixel ID
+export const FB_PIXEL_ID = '1433456280360129';
 
 export const initFacebookPixel = () => {
   if (typeof window === 'undefined') return;
